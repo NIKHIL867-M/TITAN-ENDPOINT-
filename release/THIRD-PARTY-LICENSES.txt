@@ -1,0 +1,227 @@
+TITAN ENDPOINT — Third-Party Licenses
+Updated: 2026-08-03
+
+This document lists all third-party software components incorporated into or distributed with
+the TITAN ENDPOINT product, together with their licenses and copyright notices. It is required
+by the FORU.TXT Part 6 release engineering gate ("dependency/license/checksum inventory").
+
+Maintainer obligation: update this file whenever a new dependency is added, removed, or
+upgraded. Verify license compatibility before adding any dependency. Do not ship without
+completing this inventory.
+
+================================================================================
+1. .NET 8 and Windows Presentation Foundation (WPF)
+================================================================================
+
+Component: .NET Runtime, WPF, and associated libraries
+Source:    https://github.com/dotnet/runtime  /  https://github.com/dotnet/wpf
+License:   MIT
+
+MIT License
+
+Copyright (c) .NET Foundation and Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+NOTES: The .NET Runtime and WPF are redistributed under the MIT license as
+part of the self-contained or framework-dependent deployment. The Windows
+Desktop Runtime redistributable (dotnet-windowsdesktop-runtime-*) is covered
+by the same MIT license from the .NET Foundation.
+
+================================================================================
+2. Npcap (Network Packet Capture Library)
+================================================================================
+
+Component: Npcap (wpcap.dll, packet.dll)
+Source:    https://npcap.com
+License:   Npcap License (https://github.com/nmap/npcap/blob/master/LICENSE)
+
+Copyright (c) 2013-2024 Nmap LLC. All rights reserved.
+
+Npcap is free for use by end users under the following conditions:
+- Npcap may only be redistributed with a commercial license or within
+  open-source projects that comply with the Npcap OEM License terms.
+- Redistribution of Npcap binaries requires compliance with the Npcap
+  License Agreement available at https://npcap.com/oem/redist.html.
+
+TITAN ENDPOINT does NOT ship Npcap binaries. Npcap must be installed
+separately by the operator. The operator is responsible for compliance with
+the Npcap license. TITAN ENDPOINT links against the Npcap SDK headers at
+compile time (Npcap SDK is under the Npcap License for SDK usage).
+
+For redistribution rights (e.g., bundling Npcap in an installer), an Npcap
+OEM license must be obtained from Nmap LLC.
+
+================================================================================
+3. Visual C++ Redistributable (MSVC Runtime)
+================================================================================
+
+Component: Microsoft Visual C++ 2022 Redistributable (vcruntime140.dll, etc.)
+Source:    https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files
+License:   Microsoft Software License Terms for Visual C++ Redistributables
+
+The Visual C++ Redistributable is redistributable under the Microsoft
+Software License Terms for Visual C++ Redistributable Packages. See
+https://visualstudio.microsoft.com/license-terms/vs2022-cruntime/ for the
+current license terms.
+
+TITAN ENDPOINT includes the MSVC runtime DLLs in its release package under
+the terms of the Microsoft redistributable license.
+
+================================================================================
+4. Python (CPython)
+================================================================================
+
+Component: Python 3.x (CPython interpreter and standard library)
+Source:    https://www.python.org
+License:   Python Software Foundation License Version 2 (PSF License)
+
+Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved.
+
+PYTHON SOFTWARE FOUNDATION LICENSE VERSION 2
+
+1. This LICENSE AGREEMENT is between the Python Software Foundation ("PSF"),
+   and the Individual or Organization ("Licensee") accessing and otherwise using
+   Python software in source or binary form and its associated documentation.
+
+2. Subject to the terms and conditions of this License Agreement, PSF hereby
+   grants Licensee a nonexclusive, royalty-free, world-wide license to
+   reproduce, analyze, test, perform and/or display publicly, prepare derivative
+   works, distribute, and otherwise use Python alone or in any derivative
+   version, provided, however, that PSF's License Agreement and PSF's notice of
+   copyright, i.e., "Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+   2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
+   2020, 2021, 2022, 2023 Python Software Foundation; All Rights Reserved"
+   are retained in Python alone or in any derivative version prepared by Licensee.
+
+[Full license text: https://docs.python.org/3/license.html]
+
+TITAN ENDPOINT does NOT ship a Python interpreter. Python must be installed
+separately by the operator. The operator is responsible for compliance with
+the PSF license.
+
+================================================================================
+5. PyYAML
+================================================================================
+
+Component: PyYAML
+Source:    https://github.com/yaml/pyyaml
+License:   MIT
+
+Copyright (c) 2017-2024 Ingy döt Net
+Copyright (c) 2006-2016 Kirill Simonov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+================================================================================
+6. cryptography (Python package)
+================================================================================
+
+Component: cryptography
+Source:    https://github.com/pyca/cryptography
+License:   Apache License 2.0 and BSD License (dual-licensed)
+
+Copyright (c) Individual contributors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+[Full Apache 2.0 text: https://www.apache.org/licenses/LICENSE-2.0]
+
+================================================================================
+7. openai (Python package)
+================================================================================
+
+Component: openai Python client library
+Source:    https://github.com/openai/openai-python
+License:   Apache License 2.0
+
+Copyright (c) OpenAI.
+
+Licensed under the Apache License, Version 2.0 (the "License").
+[Full text: https://github.com/openai/openai-python/blob/main/LICENSE]
+
+NOTE: The openai package is only used when the English rule authoring path is
+invoked. The YAML path does not use this package. The operator must supply their
+own OpenAI API key; TITAN ENDPOINT does not include any API key.
+
+================================================================================
+8. Windows Operating System APIs
+================================================================================
+
+The TITAN ENDPOINT native endpoints use publicly documented Windows APIs including:
+  - Windows Event Tracing (ETW)
+  - Windows Filtering Platform (WFP)
+  - SetupAPI and Device Notification
+  - Winsock2
+  - Win32 Process/Job/Token APIs
+  - Windows CryptAPI (BCrypt)
+
+These APIs are part of the Windows SDK and are governed by the
+Microsoft Windows SDK License Agreement. Their use does not impose
+third-party license obligations on TITAN ENDPOINT beyond the Windows SDK EULA.
+
+================================================================================
+LICENSE COMPATIBILITY SUMMARY
+================================================================================
+
+| Component          | License          | Redistribution | Ships with TITAN |
+|--------------------|-----------------|----------------|-----------------|
+| .NET 8 / WPF       | MIT              | Yes            | Framework-dep.  |
+| Npcap              | Npcap License    | OEM only       | No (operator)   |
+| MSVC Runtime       | MS Redist. Terms | Yes (per terms)| Yes             |
+| Python             | PSF v2           | Yes            | No (operator)   |
+| PyYAML             | MIT              | Yes            | No (operator)   |
+| cryptography       | Apache 2.0 / BSD | Yes            | No (operator)   |
+| openai             | Apache 2.0       | Yes            | No (operator)   |
+| Windows SDK APIs   | Windows SDK EULA | N/A            | N/A             |
+
+================================================================================
+MAINTAINER NOTES
+================================================================================
+
+- This file must be reviewed by legal counsel before commercial distribution.
+- Npcap redistribution in an installer requires a paid OEM license from Nmap LLC.
+- If any GPL-licensed component is ever added, the entire product may need to be
+  reviewed for GPL compatibility; do not add GPL components without legal review.
+- OpenAI usage must comply with OpenAI's Terms of Use and Usage Policies, which
+  are separate from the library's Apache 2.0 license.
+
+Last reviewed: 2026-08-03
+Next review due: Before any public release.

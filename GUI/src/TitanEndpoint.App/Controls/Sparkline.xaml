@@ -1,0 +1,8 @@
+<UserControl x:Class="TitanEndpoint.App.Controls.Sparkline"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Polyline x:Name="Line" Stroke="{StaticResource AccentBrush}" StrokeThickness="1.5"
+                  StrokeLineJoin="Round" SnapsToDevicePixels="True"/>
+    </Grid>
+</UserControl>

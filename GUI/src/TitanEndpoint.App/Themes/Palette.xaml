@@ -1,0 +1,54 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Santosh, 2026-08-31: "add lightmode and darkmode option for the ui only if possible... should
+         not change anything, only looks, everything should need work as it is." Dark palette, moved
+         out of Theme.xaml verbatim (every value below is byte-for-byte identical to what Theme.xaml
+         used to declare directly) so App.xaml.cs can choose which palette file to merge before Theme
+         .xaml at startup: Theme.xaml's own styles/templates were never touched, they still just
+         reference these same resource keys by name via StaticResource, so nothing about how any
+         control looks or behaves changes for dark mode (the existing, unchanged default). See
+         PaletteLight.xaml for the light equivalent, same keys, different values. -->
+    <Color x:Key="WindowBgColor">#FF0A0A0C</Color>
+    <Color x:Key="NavBgColor">#FF141416</Color>
+    <Color x:Key="PanelBgColor">#FF1D1D20</Color>
+    <Color x:Key="PanelBg2Color">#FF28282C</Color>
+    <Color x:Key="BorderColor">#FF3D3D42</Color>
+    <Color x:Key="TextPrimaryColor">#FFF4F4F6</Color>
+    <Color x:Key="TextSecondaryColor">#FFA3A3AB</Color>
+    <Color x:Key="TextDisabledColor">#FF6B6B72</Color>
+    <Color x:Key="AccentColor">#FF2E86E8</Color>
+    <Color x:Key="AccentColorLight">#FF6AB4F5</Color>
+    <Color x:Key="HealthyColor">#FF2FB673</Color>
+    <Color x:Key="WarningColor">#FFE3A93B</Color>
+    <Color x:Key="CriticalColor">#FFE0473D</Color>
+
+    <SolidColorBrush x:Key="WindowBgBrush" Color="{StaticResource WindowBgColor}"/>
+    <SolidColorBrush x:Key="NavBgBrush" Color="{StaticResource NavBgColor}"/>
+    <SolidColorBrush x:Key="PanelBgBrush" Color="{StaticResource PanelBgColor}"/>
+    <SolidColorBrush x:Key="PanelBg2Brush" Color="{StaticResource PanelBg2Color}"/>
+    <SolidColorBrush x:Key="BorderBrush2" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="AccentBrushSoft" Color="{StaticResource AccentColor}" Opacity="0.20"/>
+    <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{StaticResource AccentColorLight}" Offset="0"/>
+        <GradientStop Color="{StaticResource AccentColor}" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="HealthyBrush" Color="{StaticResource HealthyColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="CriticalBrush" Color="{StaticResource CriticalColor}"/>
+
+    <!-- Two values that used to be hardcoded directly in Theme.xaml's DataGridRow/ListBoxItem hover
+         and DataGrid AlternatingRowBackground Setters (#FF2E2E33 / #FF232326): fine as fixed
+         "slightly lighter than panel" darks for the dark theme (same exact values, unchanged), but
+         those exact hex codes would render as dark speckles on a light background, so they needed to
+         become theme-aware keys rather than staying hardcoded once a light palette could exist. -->
+    <Color x:Key="HoverBgColor">#FF2E2E33</Color>
+    <Color x:Key="AlternateRowBgColor">#FF232326</Color>
+    <SolidColorBrush x:Key="HoverBgBrush" Color="{StaticResource HoverBgColor}"/>
+    <SolidColorBrush x:Key="AlternateRowBgBrush" Color="{StaticResource AlternateRowBgColor}"/>
+
+</ResourceDictionary>

@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C3CFD11A-4ABA-4792-8988-E99D08A8B4F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanEndpoint.Core", "src\TitanEndpoint.Core\TitanEndpoint.Core.csproj", "{3F9F8A1D-9293-426C-86FB-A3F2392EBF9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanEndpoint.App", "src\TitanEndpoint.App\TitanEndpoint.App.csproj", "{F3ED23C7-FF58-4117-94E0-C9E4A6114B79}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E9281FBD-D646-4978-8591-D1C7F6D53D22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanEndpoint.Core.RegressionTests", "tests\TitanEndpoint.Core.RegressionTests\TitanEndpoint.Core.RegressionTests.csproj", "{8E264F18-9741-4786-A67F-19A14D09B985}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TitanEndpoint.App.UiTests", "tests\TitanEndpoint.App.UiTests\TitanEndpoint.App.UiTests.csproj", "{7D912720-10C4-487F-9170-4E7E806D8E61}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3F9F8A1D-9293-426C-86FB-A3F2392EBF9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F9F8A1D-9293-426C-86FB-A3F2392EBF9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F9F8A1D-9293-426C-86FB-A3F2392EBF9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F9F8A1D-9293-426C-86FB-A3F2392EBF9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3ED23C7-FF58-4117-94E0-C9E4A6114B79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3ED23C7-FF58-4117-94E0-C9E4A6114B79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3ED23C7-FF58-4117-94E0-C9E4A6114B79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3ED23C7-FF58-4117-94E0-C9E4A6114B79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E264F18-9741-4786-A67F-19A14D09B985}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E264F18-9741-4786-A67F-19A14D09B985}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E264F18-9741-4786-A67F-19A14D09B985}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E264F18-9741-4786-A67F-19A14D09B985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D912720-10C4-487F-9170-4E7E806D8E61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D912720-10C4-487F-9170-4E7E806D8E61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D912720-10C4-487F-9170-4E7E806D8E61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D912720-10C4-487F-9170-4E7E806D8E61}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3F9F8A1D-9293-426C-86FB-A3F2392EBF9E} = {C3CFD11A-4ABA-4792-8988-E99D08A8B4F6}
+		{F3ED23C7-FF58-4117-94E0-C9E4A6114B79} = {C3CFD11A-4ABA-4792-8988-E99D08A8B4F6}
+		{8E264F18-9741-4786-A67F-19A14D09B985} = {E9281FBD-D646-4978-8591-D1C7F6D53D22}
+		{7D912720-10C4-487F-9170-4E7E806D8E61} = {E9281FBD-D646-4978-8591-D1C7F6D53D22}
+	EndGlobalSection
+EndGlobal

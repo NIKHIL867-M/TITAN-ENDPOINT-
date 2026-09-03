@@ -1,0 +1,388 @@
+================================================================================
+TITAN ENDPOINT — FULL PROJECT ARCHITECTURE GRAPH
+Generated 2026-07-30. Reflects the codebase as of Round 2 (see plan.txt).
+================================================================================
+
+HOW TO READ THIS FILE
+----------------------
+6 independent, native C++20 Windows programs, each its own CMake project,
+zero shared library between them (each duplicates small shared patterns —
+collector_health, resource_pressure.h, t_unix_ms — rather than linking a
+common lib). 5 are sensors; the 6th (Correlator) only ever READS the other
+5's output logs and never writes into them.
+
+  [Box]      = a running process / program
+  (Module)   = a source file / component inside a program
+  ─▶         = data flows in this direction
+  ⇒          = "produces / writes to"
+  ⇐          = "reads / tails"
+
+
+================================================================================
+SECTION 1 — SYSTEM-LEVEL VIEW (all 6 programs)
+================================================================================
+
+                              WINDOWS  KERNEL  /  OS
+   ┌───────────┬───────────────┬───────────────┬───────────────┬───────────┐
+   │ WM_DEVICE │ ETW Kernel-   │ ETW Kernel-   │ Npcap driver  │ Event Log │
+   │ CHANGE +  │ Process       │ File          │ (raw frames)  │ + ETW     │
+   │ WM_INPUT  │ provider      │ provider      │               │ providers │
+   └─────┬─────┴──────┬────────┴──────┬────────┴──────┬────────┴─────┬─────┘
+         │            │               │               │              │
+         ▼            ▼               ▼               ▼              ▼
+   ┌───────────┐┌────────────┐┌───────────────┐┌───────────────┐┌────────────┐
+   │   PORT    ││  PROCESS   ││ FILE INTEGRITY││   NETWORK     ││ APPLICATION│
+   │ usb_test  ││titan_process││  file_test    ││   titan.exe   ││application_│
+   │   .exe    ││    .exe     ││    .exe       ││               ││endpoint.exe│
+   └─────┬─────┘└──────┬──────┘└───────┬───────┘└──────┬────────┘└─────┬──────┘
+         │             │               │               │               │
+         ⇒ JSONL       ⇒ JSONL         ⇒ JSONL         ⇒ JSONL         ⇒ JSONL
+         │ (usb_events,│ (titan_*      │ (fim_events   │ (titan_*      │ (application
+         │  rotated)   │  .jsonl packs)│   .json       │  .jsonl packs │  _events
+         │             │               │   + archives) │  + PCAP ring) │  .jsonl)
+         ▼             ▼               ▼               ▼               ▼
+   C:\ProgramData\  <exe>\out\      <exe>\out\      <exe>\out\      <exe_dir>\
+   TitanUSB\logs\   ...\bin\logs\   ...\bin\logs\   ...\logs\       logs\
+         │             │               │               │               │
+         └─────────────┴───────┬───────┴───────┬───────┴───────────────┘
+                                │  (poll-tailed by LogTailer, one per source)
+                                ▼
+                     ┌─────────────────────────┐
+                     │       CORRELATOR        │   ◀── the only one of the 6
+                     │      correlator.exe      │       that READS the other
+                     │  (read-only, no admin)   │       5's logs; never writes
+                     └────────────┬────────────┘        into any of them.
+                                  │
+                                  ⇒ JSONL
+                                  │ (correlator_*.jsonl:
+                                  │  session_timeline + collector_health)
+                                  ▼
+                        .\logs\ (next to correlator.exe)
+
+
+CROSS-CUTTING CONCERNS (present in ALL 6 programs, each its own duplicated copy):
+
+  • collector_health   — periodic JSON record: status, loss/drop counters,
+                          "resource_pressure" tier. Every program emits one.
+  • t_unix_ms           — UTC epoch-ms integer on every JSON record; the
+                          Correlator's join key (added Round 2).
+  • resource_pressure.h — GlobalMemoryStatusEx + GetDiskFreeSpaceExW sampled
+                          every 15-30s ⇒ Normal/Lightened/Severe tier ⇒
+                          shrinks each program's own log-retention cap.
+                          NEVER shrinks WHAT is captured, only HOW LONG
+                          evidence is kept on disk.
+
+
+================================================================================
+SECTION 2 — PORT (USB) ENDPOINT   [PORT ENDPOINT\src_usb\]
+================================================================================
+
+  WM_DEVICECHANGE ──▶ (usb_kernel_listener) ──▶ (usb_monitor) ◀── WM_INPUT
+   (arrival/removal)      Win32 hidden window        │  (HID keystroke
+                          message loop thread         │   timing, via
+                                                       │   RegisterRawInputDevices)
+                     ┌─────────────────────────────────┴───────────────┐
+                     ▼                                                 ▼
+            [storage device path]                          [HID-keyboard path]
+                     │                                                 │
+                     ▼                                                 ▼
+          (usb_identity)                                    (usb_identity)
+          IsStorageDevice()                                 IsHidKeyboardDevice()
+          GetMountPointsForDevice()                                    │
+                     │                                                 ▼
+                     ▼                                       (usb_hid_guard)
+          (usb_session_manager)                              HidInjectionGuard:
+                  │                                           resolves raw-input
+                  ▼                                           HANDLE by VID/PID,
+          (usb_session)  ── per-device file-activity          records up to 32
+             session, anomaly detection                       keystroke timestamps
+             (executable-write, mass-delete,                   over a 5s window,
+              high-volume read/write)                          EvaluateKeystrokeTiming()
+                  │                                            (mean<30ms AND
+                  ▼                                             stddev<15ms ⇒
+          (usb_watcher)  ── ReadDirectoryChangesW              suspected injection)
+             per mounted drive                                          │
+                  │                                                      │
+                  └───────────────────┬──────────────────────────────────┘
+                                       ▼
+                              (usb_logger) ⇒ usb_events.json (+ rotated archives,
+                                               retention count adaptive via
+                                               resource_pressure)
+                                       │
+                     record types: usb_session (storage), usb_hid_event,
+                                    usb_injection_alert, collector_health
+
+  Resource pressure ticker: dedicated thread in UsbMonitor (Start/Stop
+  lifecycle), ~20s cadence ⇒ UsbLogger::SetMaxArchives().
+
+
+================================================================================
+SECTION 3 — PROCESS ENDPOINT   [PROCESS ENDPOINT\titan_fixed\]
+================================================================================
+
+  ETW Kernel-Process provider
+  (ProcessStart/Stop/DCStart, ThreadCreate)
+              │
+              ▼  (single real-time consumer thread — EnableTraceEx2 only
+              │   fires AFTER this thread confirms attached, fixed Round 1)
+  (process_monitor) ── OpenProcess/QueryFullProcessImageNameW,
+        │                NtQueryInformationProcess (cmdline),
+        │                token/SID/integrity queries,
+        │                per-PID ProcessAccumulator (capped child-name set)
+        ▼
+     (event) ── V3ProcessInfo enrichment
+        │
+        ▼
+     (filter) ── FilterEngine, 7-stage pipeline:
+        │          Stage1 CanonicalisePath │ Stage2 ClassifyLocation
+        │          Stage3 VerifySignature ── WinVerifyTrust, now on a
+        │            background thread with a 250ms bounded wait (Round 1
+        │            fix — was blocking the ETW thread directly before)
+        │          Stage4 ForkThreadSummary │ Stage5 DllActivity
+        │          Stage6 PersistenceTouchpoints ── real (not stub):
+        │            HKCU/HKLM Run+RunOnce registry targets + Startup
+        │            folder prefix match (Round 1)
+        │          Stage7 DedupAndCompress ── bloom filters + ring buffer
+        ▼
+     FilterDecision: FORWARD or COMPRESS
+        │
+        ▼
+     (logger) ⇒ AsyncLogger ⇒ titan_*.jsonl packs (retention count adaptive
+                               via resource_pressure), collector_health with
+                               real ETW EventsLost/RealTimeBuffersLost
+        │
+        ▼
+     (agent) ── owns Filter+Logger+ProcessMonitor, 10s status loop drives
+                 both ReportHealth() and the resource-pressure sample.
+
+
+================================================================================
+SECTION 4 — FILE INTEGRITY ENDPOINT   [FILEEE\]
+================================================================================
+
+  ETW Kernel-File provider
+              │
+              ▼
+  (file_etw_collector) ── FileKey/path resolution cache (bounded, 8192)
+              │
+              ▼
+  (file_monitor) ── event queue, 30s periodic maintenance loop
+              │        (CleanupStaleEntries, SaveHashBaselines,
+              │         tracker Maintenance, logger Flush,
+              │         + resource-pressure sample, Round 2)
+       ┌──────┴──────┐
+       ▼             ▼
+  (file_processor)  (file_tracker)
+   classify:          temp-file lifecycle + correlation:
+   protected/temp/    same_actor_pid / same_actor_thread within a
+   executable/        time window ⇒ temp_related_activity record
+   normal (path/       (the ONE proven correlation precedent this whole
+   extension rules)     project had before the Correlator existed —
+       │                the Correlator's join logic generalizes this
+       │                exact pattern across all 5 endpoints)
+       │                        │
+       └───────────┬────────────┘
+                    ▼
+             (file_logger) ⇒ fim_events.json + rotated archives (retention
+                              count adaptive via resource_pressure, base 2 /
+                              floor 1 — already tight before this round),
+                              collector_health with real ETW loss counters
+
+
+================================================================================
+SECTION 5 — NETWORK ENDPOINT   [NETOWRK ENDPOINT\]
+================================================================================
+
+  Npcap kernel driver (raw frames, all adapters)
+              │
+              ▼
+  (network_monitor) ── parses Ethernet/VLAN/ARP/IPv4(+frag)/IPv6(+ext hdrs)/
+              │          TCP(flags+state)/UDP/ICMP; PID/socket attribution
+              │          via GetExtendedTcpTable/UdpTable; PCAP raw ring
+              │          (2×4MiB fixed slots per adapter — NOT made
+              │          adaptive this round, flagged honestly in plan.txt)
+              ▼
+  (protocol_decoder) ── DecodeDnsQuery (existing) + DecodeDnsResponse (NEW,
+              │           Round 2: answer records, compression-pointer aware)
+              │           DecodeTlsSni (existing, ClientHello SNI only)
+              │           DecodeHttpMessage (NEW, Round 2: single-packet
+              │           request/response line + Host header, no reassembly)
+              ▼
+     (event) ⇒ ToJson() ── dns_query/dns_answers, tls_sni, http_* fields,
+                            capture_epoch_us + t_unix_ms (Round 2)
+              │
+              ▼
+     (logger) ⇒ AsyncLogger ⇒ titan_*.jsonl packs (retention adaptive,
+                               AsyncLogger owns its own pressure monitor
+                               internally this round) + collector_health
+              │
+              ▼
+     (agent) ── 10s status loop drives UpdateResourcePressure()
+
+
+================================================================================
+SECTION 6 — APPLICATION ENDPOINT   [APP\src\]
+================================================================================
+
+  ┌─────────────────────────────┐   ┌───────────────────────────────────────┐
+  │ ETW: Kernel-Process,        │   │ Windows Event Log subscriptions:      │
+  │      Kernel-File            │   │ Security(4625/4672/4688),             │
+  │ (PowerShell/WMI ETW GUIDs   │   │ Defender(1116-1118),                  │
+  │  defined but never enabled  │   │ PowerShell-Operational(4104),         │
+  │  — dead code; WEL is the    │   │ WMI-Activity(5859/5861)               │
+  │  live path for those two)   │   │                                       │
+  └──────────────┬──────────────┘   └──────────────────┬────────────────────┘
+                 ▼                                      ▼
+        (applog_etw_collector)              (applog_event_subscriber)
+                 │                             ExtractPidTidFromXml() (NEW,
+                 │                             Round 2 — reads <Execution
+                 │                             ProcessID=".." ThreadID=".."/>
+                 │                             from the rendered event XML)
+                 └──────────────┬───────────────────────┘
+                                ▼
+                       (applog_monitor) ── AppLogEvent dispatch by "kind":
+                              │              process/file/application_state/
+                              │              selection/network/module ⇒
+                              │              structured JSON directly;
+                              │              everything else ⇒ decoder path
+                    ┌─────────┼──────────────────────┐
+                    ▼         ▼                       ▼
+            (applog_watchlist)  (applog_decoder)   CollectNetworkBehavior()
+             15 default apps      DecodePowerShell/   GetExtendedTcpTable/
+             (Round 2: was 5 —    Wmi/Defender/        UdpTable per watched
+             added browsers +     Security/Watchlist   PID (socket metadata
+             chat/mail apps),     ⇒ application_log     only, no payload)
+             20-app cap,           record, now carries
+             child-process        pid/tid (Round 2 fix)
+             following (name-
+             agnostic — gives
+             browsers their
+             "depth" for free)
+                    │                    │                       │
+                    └────────────────────┴───────────────────────┘
+                                         ▼
+                              (applog_logger) ⇒ application_events.jsonl +
+                                                 rotated archives (retention
+                                                 adaptive via resource_pressure),
+                                                 collector_health
+                                         │
+                                         ▼
+                              30s health cadence in MonitorThreadFunc drives
+                              both WriteHealthRecord() and the pressure sample.
+
+
+================================================================================
+SECTION 7 — THE CORRELATOR (detailed)   [CORRELATOR\]  — NEW this round
+================================================================================
+
+  correlator_config.txt (plain text, "name=directory" per line, BOM-safe
+  since Round 2's bug fix)
+              │
+              ▼
+        main.cpp ── loads config, builds one LogTailer per source, runs a
+              │       ~3s poll loop
+              │
+    ┌─────────┼─────────┬─────────┬─────────┬─────────┐
+    ▼         ▼         ▼         ▼         ▼         ▼
+ (LogTailer)(LogTailer)(LogTailer)(LogTailer)(LogTailer)
+   "port"    "process"  "file_    "network"  "application"
+                        integrity"
+    │         │         │         │         │
+    │  each: tracks per-file byte offset, reads only newly-appended bytes,
+    │  handles partial trailing lines, drops files that vanish (pruned by
+    │  the source's own retention — never an error), auto-picks-up rotated
+    │  files by filename-hint match ("usb", "titan_", "fim_events",
+    │  "application_events").
+    │         │         │         │         │
+    └─────────┴─────────┴─────────┴─────────┴─────────┐
+                                                        ▼
+                                        (correlation_engine)
+                                     ExtractJsonNumber/String (json_fields)
+                                     ⇒ EvidenceRecord{endpoint, type,
+                                        t_unix_ms, pid, parent_pid, raw_line}
+                                                        │
+                                     bounded ring per endpoint
+                                     (2000 entries AND 60s max age,
+                                      whichever prunes first)
+                                                        │
+                                     TryCorrelate(): two-pointer time-ordered
+                                     scan per endpoint PAIR (not full cross
+                                     product) ⇒ RecordsCorrelate(a, b, ±2000ms):
+                                        same pid?  OR
+                                        a.pid == b.parent_pid?  OR
+                                        b.pid == a.parent_pid?  OR
+                                        same nonzero parent_pid (siblings)?
+                                                        │
+                                     match found ⇒ emit session_timeline,
+                                     mark both records consumed (never
+                                     re-joined next cycle)
+                                                        ▼
+                                        (correlator_logger)
+                                     ⇒ correlator_*.jsonl: session_timeline
+                                       records + periodic (30s) collector_health
+                                       (records_ingested, session_timelines_
+                                       emitted, records_in_memory,
+                                       resource_pressure)
+                                                        ▼
+                                          .\logs\ (next to correlator.exe)
+
+  Verified with a REAL smoke test (not just unit tests): synthetic JSONL
+  fixtures for two sources, real correlator.exe run for several seconds,
+  confirmed actual tailing + ingestion + a correctly-joined session_timeline
+  record in the real output file. Caught and fixed a real BOM-in-config bug
+  during that smoke test (see plan.txt Round 2, item 5).
+
+
+================================================================================
+SECTION 8 — FORU.TXT VISION  ⇒  IMPLEMENTATION MAPPING
+================================================================================
+
+  Vision item (Santosh's own words, FORU.TXT)      Where it lives now
+  ────────────────────────────────────────────     ──────────────────────────
+  "Process ... checks literally everything          Process endpoint's ETW
+   going on ... RAM usage"                          Kernel-Process pipeline +
+                                                     bounded accumulators/caches
+                                                     everywhere (Round 1)
+
+  "Network ... basically what Wireshark is          Network endpoint:
+   doing"                                           Ethernet→ICMP heuristic
+                                                     decode + DNS response +
+                                                     HTTP (Round 2); TCP
+                                                     reassembly/TLS decrypt
+                                                     explicitly out of scope
+
+  "Application ... browser, PowerShell ...           Application endpoint's
+   incoming and outgoing ... common default          15-app default watchlist
+   things every Windows user will have"              (Round 2) + child-process
+                                                     following + socket-table
+                                                     network visibility
+
+  "File ... temp and normal ... watch all of         File endpoint: system-
+   them, or user specifies ... put off               wide Kernel-File coverage
+   administrative privileges"                        already satisfies "watch
+                                                     all"; ACL/blocking
+                                                     explicitly deferred
+                                                     (needs a kernel-mode
+                                                     minifilter — out of scope)
+
+  "Port ... Rubber Ducky ... acts as human,           Port endpoint's
+   cracks passwords"                                 HidInjectionGuard +
+                                                     keystroke-timing
+                                                     heuristic (Round 1)
+
+  "RAM is the first thing that concerns me           resource_pressure.h,
+   ... also space ... auto-lightening"               all 6 programs (Round 2)
+
+  "Correlation ... write everything that's           TITAN_CORRELATION_
+   been found ... correlate the endpoints"           DESIGN.md (Round 1) ⇒
+                                                     CORRELATOR\ (Round 2,
+                                                     actually built + smoke-
+                                                     tested)
+
+  "Condition search" / "RAG"                         Not started — Santosh's
+                                                     own explicit next-round
+                                                     items.
+
+================================================================================
+END OF GRAPH
+================================================================================

@@ -1,0 +1,112 @@
+<UserControl x:Class="TitanEndpoint.App.Controls.EndpointHeader"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             x:Name="Root">
+    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+        <Grid DataContext="{Binding Header, ElementName=Root}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding DisplayName}" Style="{StaticResource PageTitleStyle}" FontSize="15"/>
+                    <Border Background="{Binding StatusBadgeBrush}" CornerRadius="3" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StatusBadgeText, Mode=OneWay}" FontSize="10.5" FontWeight="SemiBold" Foreground="#FF14161A"/>
+                    </Border>
+                </StackPanel>
+                <TextBlock Text="{Binding ScopeDescription}" Style="{StaticResource SecondaryTextStyle}" Margin="0,3,0,0"/>
+                <TextBlock Text="{Binding SessionText, Mode=OneWay}" Style="{StaticResource SecondaryTextStyle}" Margin="0,2,0,0" FontSize="11"/>
+            </StackPanel>
+
+            <!-- FORU.TXT 0.2 control #1: process lifetime. The ONLY control that starts/stops the
+                 native process — deliberately separate from Monitoring below, which never does. -->
+            <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center">
+                <TextBlock Text="ENDPOINT" Style="{StaticResource SectionLabelStyle}" HorizontalAlignment="Center"/>
+                <Button Content="{Binding StartStopButtonText}" Command="{Binding StartStopCommand}"
+                        Margin="0,4,0,0" Padding="10,4" FontSize="11" MinWidth="110"
+                        AutomationProperties.AutomationId="StartStopEndpointButton"
+                        ToolTip="Starts or stops the native collector process itself. Stopping calls the authenticated Shutdown/Flush path first; forced termination is only a last-resort fallback and is always labelled Forced in Endpoint Details.">
+                    <AutomationProperties.Name>
+                        <MultiBinding StringFormat="{}{0}: {1}">
+                            <Binding Path="DisplayName"/>
+                            <Binding Path="StartStopButtonText"/>
+                        </MultiBinding>
+                    </AutomationProperties.Name>
+                </Button>
+            </StackPanel>
+
+            <!-- FORU.TXT 0.2 control #2: collection pause/resume while the process stays alive.
+                 Disabled (with an explanatory tooltip, never a silent no-op) unless the process is
+                 both running and reachable over its own control channel. -->
+            <StackPanel Grid.Column="2" Margin="14,0" VerticalAlignment="Center" ToolTip="{Binding MonitoringDisabledReason}">
+                <TextBlock Text="MONITORING" Style="{StaticResource SectionLabelStyle}" HorizontalAlignment="Center"/>
+                <CheckBox IsChecked="{Binding MonitoringIsOn}" Style="{DynamicResource ToggleSwitchStyle}"
+                          HorizontalAlignment="Center" Margin="0,4,0,0" IsEnabled="{Binding CanToggleMonitoring}"
+                          AutomationProperties.AutomationId="MonitoringToggle"
+                          AutomationProperties.HelpText="{Binding MonitoringDisabledReason}"
+                          AutomationProperties.Name="{Binding DisplayName, StringFormat={}{0} monitoring}"/>
+                <TextBlock Text="{Binding MonitoringIsOn, Converter={StaticResource BoolToOnOff}}"
+                           Style="{StaticResource SecondaryTextStyle}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <!-- FORU.TXT 0.2 control #3: persistence, independent of Monitoring. Must be a real
+                 enabled control whenever the channel is reachable — previously hardcoded
+                 IsEnabled="False" here, which is exactly what the 2026-08-02 review rejected. -->
+            <StackPanel Grid.Column="3" Margin="14,0" VerticalAlignment="Center" ToolTip="{Binding SaveLogsNote}">
+                <TextBlock Text="SAVE LOGS" Style="{StaticResource SectionLabelStyle}" HorizontalAlignment="Center"/>
+                <CheckBox IsChecked="{Binding SaveLogsIsOn}" Style="{DynamicResource ToggleSwitchStyle}"
+                          HorizontalAlignment="Center" Margin="0,4,0,0" IsEnabled="{Binding CanToggleSaveLogs}"
+                          AutomationProperties.AutomationId="SaveLogsToggle"
+                          AutomationProperties.HelpText="{Binding SaveLogsNote}"
+                          AutomationProperties.Name="{Binding DisplayName, StringFormat={}{0} save logs}"/>
+                <TextBlock Text="{Binding SaveLogsIsOn, Converter={StaticResource BoolToOnOff}}"
+                           Style="{StaticResource SecondaryTextStyle}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="4" Margin="14,0" VerticalAlignment="Center" MaxWidth="200">
+                <TextBlock Text="LOG DESTINATION" Style="{StaticResource SectionLabelStyle}"/>
+                <TextBlock Text="{Binding LogPathText, Mode=OneWay}" Style="{StaticResource MonoTextStyle}" FontSize="10.5"
+                           TextTrimming="CharacterEllipsis" ToolTip="{Binding LogPathText}"/>
+                <Button Content="Open Folder" Command="{Binding OpenFolderCommand}" Margin="0,4,0,0" Padding="8,3" FontSize="11" HorizontalAlignment="Left"
+                        AutomationProperties.AutomationId="OpenLogFolderButton"
+                        AutomationProperties.Name="{Binding DisplayName, StringFormat=Open log folder for {0}}"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="5" Margin="14,0" VerticalAlignment="Center">
+                <TextBlock Text="RATE / LOSS" Style="{StaticResource SectionLabelStyle}"/>
+                <TextBlock Text="{Binding EventsPerSecText, Mode=OneWay}" FontSize="12"/>
+                <TextBlock Text="{Binding LossText, Mode=OneWay}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" MaxWidth="150"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="6" Margin="14,0" VerticalAlignment="Center">
+                <TextBlock Text="RESOURCE USE" Style="{StaticResource SectionLabelStyle}"/>
+                <TextBlock FontSize="12">
+                    <Run Text="CPU: "/><Run Text="{Binding CpuText, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock FontSize="12">
+                    <Run Text="RAM: "/><Run Text="{Binding WorkingSetText, Mode=OneWay}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <StackPanel Grid.Column="7" VerticalAlignment="Center">
+                <Button Content="Endpoint Details" Command="{Binding DetailsCommand}"
+                        AutomationProperties.AutomationId="EndpointDetailsButton"
+                        AutomationProperties.Name="{Binding DisplayName, StringFormat=Endpoint details for {0}}"/>
+                <Button Content="Diagnostics" Command="{Binding ShowDiagnosticsCommand}" Margin="0,6,0,0"
+                        AutomationProperties.AutomationId="ShowDiagnosticsButton"
+                        AutomationProperties.HelpText="Bounded native stdout/stderr for this endpoint -- diagnostic output only, not the forensic JSONL evidence log."
+                        AutomationProperties.Name="{Binding DisplayName, StringFormat=Diagnostics for {0}}"
+                        ToolTip="Bounded native stdout/stderr for this endpoint — diagnostic output only, not the forensic JSONL evidence log."/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,15 @@
+<UserControl x:Class="TitanEndpoint.App.Controls.FlowEdgeControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             IsHitTestVisible="True">
+    <Canvas>
+        <Line x:Name="EdgeLine" Stroke="{StaticResource AccentBrush}" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+        <Border x:Name="Badge" Background="{StaticResource PanelBg2Brush}" BorderBrush="{StaticResource BorderBrush2}"
+                BorderThickness="1" CornerRadius="8" Padding="5,1" RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform>
+                <ScaleTransform x:Name="BadgeScale" ScaleX="1" ScaleY="1"/>
+            </Border.RenderTransform>
+            <TextBlock x:Name="CountTextBlock" FontSize="10.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+        </Border>
+    </Canvas>
+</UserControl>

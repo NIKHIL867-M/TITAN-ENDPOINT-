@@ -1,0 +1,88 @@
+<UserControl x:Class="TitanEndpoint.App.Views.SystemHealthView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:common="clr-namespace:TitanEndpoint.App.Common"
+             xmlns:ctl="clr-namespace:TitanEndpoint.App.Controls">
+    <UserControl.DataContext>
+        <vm:SystemHealthViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" VerticalAlignment="Center">
+                One row per collector process (not yet broken down by internal pipeline stage — provider/decoder/queue/logger
+                granularity would need additional per-stage instrumentation this build does not have access to).
+            </TextBlock>
+            <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                <Button Content="Copy Diagnostic Summary" Command="{Binding CopyDiagnosticSummaryCommand}" Padding="10,4"
+                        AutomationProperties.Name="Copy diagnostic summary"
+                        AutomationProperties.AutomationId="CopyDiagnosticSummaryButton"/>
+                <TextBlock Text="{Binding CopyStatusText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" Margin="0,4,0,0" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Task Manager "Performance" tab style live moving graph, per the GUI-upgrade ask. Real
+             fleet-wide events/sec, not decoration; silent/flat when nothing is actually running. -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="10,8" Margin="0,0,0,10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Fleet Activity" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,2"/>
+                <TextBlock DockPanel.Dock="Top" Text="Real events written/sec, summed across every running component -- last 60 samples @ 1s."
+                           Style="{StaticResource SecondaryTextStyle}" FontSize="10" Margin="0,0,0,6"/>
+                <ctl:PerformanceGraph Height="90" Values="{Binding ActivitySamples}" Unit="/s"
+                                      AutomationProperties.Name="Fleet activity graph"
+                                      AutomationProperties.AutomationId="FleetActivityGraph"/>
+            </DockPanel>
+        </Border>
+
+        <TextBox Grid.Row="2" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}" Width="320" HorizontalAlignment="Left"
+                 Margin="0,0,0,8" ToolTip="Filter by component name, state or last error"
+                 AutomationProperties.Name="Filter system health components"
+                 AutomationProperties.AutomationId="SystemHealthFilterTextBox"/>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}" AutoGenerateColumns="False"
+                  AutomationProperties.Name="System health components"
+                  AutomationProperties.AutomationId="SystemHealthGrid"
+                  common:LayoutPersistence.GridKey="SystemHealthGrid">
+            <!-- Keep the global DataGridRow style here. A DynamicResource-backed duration inside
+                 a Storyboard cannot be frozen when WPF seals a recycled row style and caused a
+                 repeated InvalidOperationException during navigation. Reduced Motion and runtime
+                 stability take precedence over a decorative row-entry animation. -->
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Component" Binding="{Binding Name}" Width="130"/>
+                <DataGridTemplateColumn Header="State" Width="110">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Ellipse Width="7" Height="7" Fill="{Binding StateBrush}" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding State}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Heartbeat" Binding="{Binding Heartbeat}" Width="90"/>
+                <DataGridTextColumn Header="Session / PID" Binding="{Binding Session}" Width="170"/>
+                <DataGridTextColumn Header="Seen" Binding="{Binding Received}" Width="85"/>
+                <DataGridTextColumn Header="Written" Binding="{Binding Written}" Width="85"/>
+                <DataGridTextColumn Header="Queue" Binding="{Binding Queue}" Width="150"/>
+                <DataGridTextColumn Header="Lost/Failed" Binding="{Binding Dropped}" Width="100"/>
+                <DataGridTextColumn Header="Retained" Binding="{Binding Retained}" Width="150"/>
+                <DataGridTextColumn Header="Restarts" Binding="{Binding RestartCount}" Width="80"/>
+                <DataGridTextColumn Header="Resource Pressure" Binding="{Binding Pressure}" Width="130"/>
+                <DataGridTextColumn Header="Evidence Gap" Binding="{Binding EvidenceGap}" Width="90"/>
+                <DataGridTextColumn Header="Last Error" Binding="{Binding LastErrorSummary}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

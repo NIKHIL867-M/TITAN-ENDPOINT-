@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-02T10:07:50.3471028+00:00",
+  "global_budget_bytes": 5368709120,
+  "effective_native_budget_bytes": 5368709120,
+  "available_free_bytes": 58739167232,
+  "minimum_free_space_reserve_bytes": 1073741824,
+  "pressure_limited": false,
+  "evidence_policy": "CUSTOM RULE evidence uses its independent severity/age/file/byte retention policy; native allocations never delete that evidence store.",
+  "endpoints": [
+    {
+      "endpoint": "Process",
+      "budget_bytes": 1073741824,
+      "state": "Pending",
+      "detail": "Endpoint is stopped; the budget will be applied after it starts."
+    },
+    {
+      "endpoint": "Network",
+      "budget_bytes": 1879048192,
+      "state": "Pending",
+      "detail": "Endpoint is stopped; the budget will be applied after it starts."
+    },
+    {
+      "endpoint": "Application",
+      "budget_bytes": 536870912,
+      "state": "Pending",
+      "detail": "Endpoint is stopped; the budget will be applied after it starts."
+    },
+    {
+      "endpoint": "File",
+      "budget_bytes": 805306368,
+      "state": "Pending",
+      "detail": "Endpoint is stopped; the budget will be applied after it starts."
+    },
+    {
+      "endpoint": "Port",
+      "budget_bytes": 268435456,
+      "state": "Pending",
+      "detail": "Endpoint is stopped; the budget will be applied after it starts."
+    },
+    {
+      "endpoint": "Correlator",
+      "budget_bytes": 805306368,
+      "state": "Pending",
+      "detail": "Endpoint is stopped; the budget will be applied after it starts."
+    }
+  ]
+}

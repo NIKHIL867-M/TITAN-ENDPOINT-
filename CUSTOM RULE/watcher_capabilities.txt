@@ -1,0 +1,170 @@
+================================================================================
+  WATCHER AGENT — COMPLETE TELEMETRY & CAPABILITY MATRIX
+  File: watcher_capabilities.txt
+  Project: AI Rule Engine & Watcher Agent v5
+================================================================================
+
+This document details every single telemetry source, collector, event log channel,
+event type, and specific metadata field that the Watcher Agent can monitor and evaluate.
+
+--------------------------------------------------------------------------------
+  1. TELEMETRY COLLECTOR TYPES
+--------------------------------------------------------------------------------
+
+The Watcher Agent employs a plugin-based architecture with four specialized collectors.
+Each collector monitors distinct sources, event logs, or APIs, mapping raw telemetry 
+into the common normalized schemas.
+
+[1] SYSTEM COLLECTOR (system)
+  - Channel Source: "System" Windows Event Log
+  - Requires Elevation: No (Standard users can read the System event log)
+  - Monitored Event IDs:
+      * EID 7036: Service state change (Start / Stop / Pause / Resume)
+      * EID 7045: New service installation
+  - Mapped Normalized Event Types:
+      * service.state_change
+      * service.install
+
+[2] WMI PROCESS COLLECTOR (wmi)
+  - Channel Source: WMI __InstanceCreationEvent for Win32_Process class
+  - Requires Elevation: No (Standard users can read processes spawned in their session)
+  - Monitored Event IDs: N/A (Subscribes to live WMI process creation queries)
+  - Mapped Normalized Event Types:
+      * process.start
+
+[3] SECURITY COLLECTOR (security)
+  - Channel Source: "Security" Windows Event Log
+  - Requires Elevation: Yes (Administrator privileges or Event Log Readers membership)
+  - Prerequisites: Process Creation Success Auditing must be enabled in Windows Local Audit Policy.
+  - Monitored Event IDs:
+      * EID 4688: New process creation (includes PID, parent PID, command line)
+      * EID 4624: Logon session successfully created (Logon success)
+      * EID 4625: Logon attempt failed (Logon failure)
+      * EID 4648: Logon attempt using explicit credentials (RunAs)
+  - Mapped Normalized Event Types:
+      * process.start
+      * auth.login_success
+      * auth.login_failure
+      * auth.runas
+      * service.install
+
+[4] SYSMON OPERATIONAL COLLECTOR (sysmon)
+  - Channel Source: "Microsoft-Windows-Sysmon/Operational" Event Log (Sysmon must be installed)
+  - Requires Elevation: Yes (Administrator privileges or Event Log Readers membership)
+  - Monitored Event IDs:
+      * EID 1: Process creation (fully detailed command line, hashes, parent info)
+      * EID 3: Network connection detected (destination/source IP, ports, protocols)
+      * EID 7: Image loaded by process (DLL load, drivers)
+      * EID 11: File created or overwritten
+      * EID 13: Registry value set (creation or modification of keys/values)
+  - Mapped Normalized Event Types:
+      * process.start
+      * network.connect
+      * image.load
+      * file.create
+      * registry.set
+
+
+--------------------------------------------------------------------------------
+  2. SUPPORTED NORMALIZED EVENT TYPES
+--------------------------------------------------------------------------------
+
+Approved detection rules match incoming events on these exact types:
+
+  - "process.start"          : Spawning of any executable process.
+  - "network.connect"        : Outbound/inbound network traffic sockets.
+  - "auth.login_success"     : Successful authentication logins.
+  - "auth.login_failure"     : Failed login attempts (brute-force triggers).
+  - "auth.runas"             : Escalations or runs under other credentials.
+  - "service.install"        : New system services being created.
+  - "service.state_change"   : Stopping, starting, or pausing of existing services.
+  - "file.create"            : Writing new files on disk.
+  - "registry.set"           : Modifications to system registry paths.
+  - "image.load"             : DLL loading and module injections.
+
+
+--------------------------------------------------------------------------------
+  3. MAPPED METADATA FIELDS (EVALUATABLE IN RULES)
+--------------------------------------------------------------------------------
+
+When writing rules, the LLM translates natural language criteria into conditions
+comparing these fields using supported operators (==, !=, contains, within, >, >=, <, <=, regex).
+
+[A] PROCESS FIELDS (for process.start and image.load)
+  - name / process.name
+      * Type: string
+      * Description: The filename of the process image.
+      * Examples: "powershell.exe", "cmd.exe", "calculatorapp.exe", "notepad.exe"
+  - command_line / process.command_line
+      * Type: string
+      * Description: The complete command line arguments used to launch the process.
+      * Examples: "-encodedcommand sgvsbG8=", "/c whoami", "-executionpolicy bypass"
+  - pid / process.pid
+      * Type: integer
+      * Description: Process Identifier.
+  - ppid / process.ppid
+      * Type: integer
+      * Description: Parent Process Identifier.
+  - parent_name / process.parent_name
+      * Type: string
+      * Description: The name of the process that spawned this process.
+      * Examples: "explorer.exe", "w3wp.exe", "cmd.exe"
+  - hash / process.hash
+      * Type: string
+      * Description: MD5, SHA-1, or SHA-256 hash of the process binary (Sysmon only).
+
+[B] NETWORK FIELDS (for network.connect)
+  - dest_ip / network.dest_ip
+      * Type: string
+      * Description: Destination IPv4 or IPv6 address.
+      * Examples: "192.168.1.50", "8.8.8.8", "203.0.113.4"
+  - dest_port / network.dest_port
+      * Type: integer
+      * Description: Destination TCP/UDP port.
+      * Examples: 80, 443, 22, 445
+  - src_ip / network.src_ip
+      * Type: string
+      * Description: Source host IP address.
+  - src_port / network.src_port
+      * Type: integer
+      * Description: Source port.
+  - protocol / network.protocol
+      * Type: string
+      * Description: Protocol identifier (usually tcp or udp).
+
+[C] AUTHENTICATION FIELDS (for auth.login_success, auth.login_failure, auth.runas)
+  - username / user
+      * Type: string
+      * Description: Account user name attempting authentication.
+      * Examples: "admin", "administrator", "system", "jdoe"
+  - source_ip
+      * Type: string
+      * Description: The IP address of the system initiating the login request.
+  - result
+      * Type: string
+      * Description: Logon outcome.
+      * Examples: "success", "failure", "locked_out"
+  - method
+      * Type: string
+      * Description: Logon type / validation method.
+      * Examples: "password", "kerberos", "ntlm", "runas"
+
+[D] COMMON SYSTEM / LOG FIELDS (available on all events)
+  - host
+      * Type: string
+      * Description: Hostname of the system where the event occurred.
+      * Examples: "localhost", "workstation-01"
+  - user
+      * Type: string
+      * Description: User context running the process or state.
+  - timestamp
+      * Type: string (ISO 8601 format)
+      * Description: Time when the event was recorded.
+      * Example: "2026-07-12T14:15:20Z"
+  - event_type
+      * Type: string
+      * Description: The normalized category type string.
+
+================================================================================
+  END OF MATRIX
+================================================================================

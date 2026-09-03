@@ -1,0 +1,229 @@
+TITAN + OPENCTI THREAT-INTEL INTEGRATION -- PLANNING DOCUMENT
+(Idea/architecture discussion only. Nothing in this file has been built yet.)
+
+
+1. YOUR GOAL, RESTATED
+----------------------
+You want to take TITAN's correlated logs (the Correlator's output -- groups of
+events that are already tied together with real evidence, not guesses) and
+check them against OpenCTI, so that if something in your logs matches a known
+threat, you find out and can act on it. That is the right goal for this stage
+of the project. This document is about the SAFEST and MOST FEASIBLE way to
+get there, not a different goal.
+
+
+2. A QUICK REALITY CHECK ON WHAT OPENCTI ACTUALLY IS
+-----------------------------------------------------
+OpenCTI is a threat-intelligence database and analyst workspace. Its job is
+to store and relate STIX2 objects: malware families, threat actors, attack
+patterns (MITRE ATT&CK techniques), indicators (hashes/IPs/domains), and the
+relationships between them ("Malware X uses Technique Y", "Indicator Z is
+associated with Actor W"). Analysts (or automated "connectors") feed it
+threat intel from outside sources -- MITRE ATT&CK, AlienVault OTX, abuse.ch,
+MISP, VirusTotal, etc.
+
+Two things matter for your plan:
+
+  a) OpenCTI is NOT a vector database, and it is not built around semantic
+     "similarity search" as its main way of matching things. Its main way of
+     matching is EXACT: does this hash/IP/domain/URL match an indicator it
+     already knows about? That is deliberate -- threat intel work leans
+     heavily on precise indicators because a "vibe match" between two pieces
+     of text is not evidence.
+
+  b) OpenCTI already HAS a real ingestion path built for exactly your use
+     case -- an external system sending it observed data to check against
+     its own knowledge base. That path is STIX "Observable" / "Sighting"
+     objects submitted through its GraphQL API or a custom connector. You do
+     not need to invent a new communication mechanism; OpenCTI already
+     expects this pattern.
+
+
+3. TWO DESIGNS, COMPARED
+-------------------------
+
+DESIGN A -- "Vector similarity" (your original idea from before)
+  Embed TITAN's log text into a vector DB. Also embed OpenCTI's malware/TTP
+  descriptions into the same vector space. Compare with cosine similarity.
+  Surface the closest match as "this looks like X."
+
+  Problem: this reintroduces false positives and false negatives -- the
+  exact thing you told me you do not want any room for. A similarity score
+  can say "82% similar to APT29's PowerShell technique" purely because both
+  texts share words like "powershell" and "encoded", with no guarantee the
+  actual behavior matches. It also cannot represent the highest-value,
+  highest-confidence signal there is: a file hash either matches a known-bad
+  hash exactly, or it does not. There is no "semantically similar" hash.
+  Every other part of TITAN (the Correlator's confidence scoring, the
+  evidence resolver, "show me the full raw record") was built to avoid
+  exactly this kind of fuzzy, unverifiable claim.
+
+DESIGN B -- "Exact-match first, OpenCTI does the correlating" (recommended)
+  TITAN already produces, per correlated group, real observable data: file
+  SHA-256 hashes, destination IPs, domains, process names, command lines.
+  Package the relevant ones as STIX Observables and submit them to OpenCTI
+  through its own API, the way it is designed to receive them. OpenCTI's own
+  engine (built on exact relationship matching against everything it already
+  knows from its threat-intel feeds) tells you whether that hash/IP/domain
+  is already known-bad, and if so, which malware/actor/campaign it is tied
+  to and why. You get OpenCTI's real correlation engine for free instead of
+  re-building a weaker version of it yourself. A softer, clearly-labeled
+  "semantic hint" layer (Design A's idea) can still exist LATER as an
+  optional extra signal -- but never as the primary mechanism, and never
+  shown with the same confidence as an exact indicator match.
+
+  This is also just less work: OpenCTI already solved "how do I match an
+  observable against a knowledge base of threats." You do not need to.
+
+
+4. RECOMMENDED ARCHITECTURE -- END TO END
+-------------------------------------------
+  [TITAN fleet: 5 endpoints]
+        |
+        v
+  [Correlator]  -- already groups events into evidence-backed incidents
+        |
+        v
+  [New: small "OpenCTI Bridge" component]
+        - Watches the Correlator's own output (the same JSON files the GUI
+          already reads -- no change needed to the 5 endpoints or the
+          Correlator's core logic)
+        - Picks out the real observables from each correlated group: file
+          hashes, dest IPs/domains, maybe process names for context
+        - Converts them into STIX Observable/Sighting objects
+        - Submits them to OpenCTI via its GraphQL API (this is the
+          "communication between the logs and OpenCTI" you asked about --
+          see section 5)
+        |
+        v
+  [OpenCTI, hosted on one system/server]
+        - Already has threat intel loaded in it from its normal connectors
+          (MITRE ATT&CK, OTX, abuse.ch, etc. -- these are OpenCTI's own
+          existing, standard connectors, nothing custom needed here)
+        - Checks the incoming observables against everything it knows
+        - If a match exists, OpenCTI can raise a "Sighting" -- this
+          indicator was actually observed in your environment
+        |
+        v
+  [Bridge reads back results] -- via the same GraphQL API, poll for new
+        Sightings tied to what TITAN submitted
+        |
+        v
+  [TITAN GUI: new "Threat Intel Matches" panel]
+        - Shows: which correlated incident, which observable, what OpenCTI
+          says it matches, and a link/reference back to OpenCTI's own record
+          for full detail
+        - Every match shown here traces back to an exact indicator, so
+          "why was this flagged" always has a real, checkable answer
+
+
+5. DIRECTLY ANSWERING YOUR IDEA: "HOST OPENCTI ON 1 SYSTEM + COMMUNICATION
+   BETWEEN THE LOGS AND OPENCTI"
+----------------------------------------------------------------------------
+Yes -- that half of your idea is exactly right and does not need to change.
+One machine (or VM) runs OpenCTI. TITAN keeps running wherever it runs now.
+The "communication" is the Bridge component in section 4: it talks to
+OpenCTI over the network using OpenCTI's own GraphQL API (this is a normal
+HTTPS API, the same thing OpenCTI's official connectors use -- nothing
+exotic, no new protocol to invent). The only real design change from what
+you described is WHAT gets sent (exact observables, not raw log text or
+embeddings) and WHAT does the matching (OpenCTI's own STIX relationship
+engine, not a separate vector-similarity step).
+
+
+6. HOSTING OPENCTI -- WHAT IT ACTUALLY TAKES
+-----------------------------------------------
+Worth knowing before committing to this: OpenCTI's real deployment is not
+lightweight. The standard stack is several containers running together:
+  - The OpenCTI platform itself
+  - Elasticsearch or OpenSearch (its search/storage backend)
+  - Redis (internal state)
+  - RabbitMQ (internal messaging)
+  - MinIO (S3-compatible file storage)
+  - Optional connector containers (one per feed you want it to pull from)
+
+Minimum realistic resources: a dedicated machine/VM with several GB of RAM
+free (8 GB+ recommended once you add a couple of connectors), a few CPU
+cores, and enough disk for Elasticsearch's indices to grow over time. This
+is normally run via Docker Compose. It is very doable on a spare machine or
+a cloud VM, but it is a real second system to keep running and maintaining,
+not something to bundle into the TITAN fleet's own footprint.
+
+
+7. WHAT GETS SENT, AND HOW OFTEN (VOLUME CONTROL)
+----------------------------------------------------
+TITAN's fleet produces a large volume of events (you have already seen
+hundreds of events/sec during live tests). Sending every raw event to
+OpenCTI would be both pointless (most events have nothing to check -- normal
+file writes, normal process starts) and would overload OpenCTI's ingestion.
+
+The Bridge should only submit observables that are actually worth checking:
+  - File hashes for files that were created/written/executed (not every
+    temp file -- the File endpoint already tags executable vs document vs
+    protected paths, that tagging can decide what is worth a hash check)
+  - Destination IPs/domains from Network activity
+  - Nothing from purely internal/expected activity (the Correlator already
+    marks "operational_only" groups -- health heartbeats etc. -- those
+    should never be sent)
+
+This keeps the traffic to OpenCTI small, relevant, and matches TITAN's
+existing "don't drown the real signal in noise" design philosophy already
+used elsewhere (bounded queues, adaptive caps, etc.).
+
+
+8. PHASED ROLLOUT (SO THIS IS BUILDABLE IN STAGES, NOT ONE BIG JUMP)
+------------------------------------------------------------------------
+Phase 1 -- Manual/offline proof of concept
+  Stand up OpenCTI on one machine. Manually export a handful of real
+  observables from a Correlator run (hashes/IPs you already have from past
+  test logs) and submit them by hand through OpenCTI's own UI or API to
+  confirm the matching behaves the way you expect, before writing any
+  bridge code.
+
+Phase 2 -- One-way push
+  Build the small Bridge component: read the Correlator's output, extract
+  observables, push them to OpenCTI automatically. No read-back yet.
+
+Phase 3 -- Read-back + GUI panel
+  Bridge polls OpenCTI for Sightings tied to what it submitted, and the GUI
+  gets a real "Threat Intel Matches" panel showing them with full traceable
+  detail (per your evidence-first standard).
+
+Phase 4 -- optional, later
+  A clearly-separated, clearly-labeled "possible technique similarity" soft
+  signal (the vector/RAG idea from Design A), shown at a visibly lower
+  confidence tier than an exact match, the same way the Correlator already
+  labels join confidence as high/medium/low. Not required for this to be
+  useful -- only worth adding once Phases 1-3 are solid.
+
+
+9. RISKS / OPEN QUESTIONS TO DECIDE BEFORE BUILDING
+--------------------------------------------------------
+  - Where does OpenCTI actually get hosted -- a spare physical machine, a
+    VM, a cloud instance? This affects network reachability from wherever
+    TITAN runs.
+  - Is sending real file hashes/IPs from your environment to that OpenCTI
+    instance acceptable from a privacy/scope standpoint for a capstone demo
+    (this matters less if it is entirely your own lab machine talking to
+    your own OpenCTI instance, more if either side is shared/public).
+  - Which of OpenCTI's own connectors do you actually want feeding it threat
+    intel (MITRE ATT&CK alone is a reasonable, free, well-known starting
+    point for a capstone demo)?
+  - Do you want the Bridge to be a new small standalone process (matching
+    how the Correlator/GUI are already separate processes), or a module
+    inside an existing one? (Recommendation: standalone, same reasoning as
+    why the Correlator is its own process -- one thing can be down without
+    taking the others with it.)
+
+
+10. BOTTOM LINE
+-------------------
+Your instinct to host OpenCTI on its own system and build a real
+communication path between it and TITAN's logs is correct and worth doing.
+The one change from your original idea: let OpenCTI do the matching the way
+it already does it best (exact observables against its own STIX knowledge
+base), instead of building a parallel vector-similarity system as the
+primary mechanism. That keeps every match traceable to a real, checkable
+indicator -- in line with how the rest of TITAN already treats evidence --
+and it is also less work, since OpenCTI already built that correlation
+engine for you.

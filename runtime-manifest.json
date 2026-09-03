@@ -1,0 +1,92 @@
+﻿{
+    "schemaVersion":  2,
+    "generatedAtUtc":  "2026-08-31T18:35:51Z",
+    "generatedBy":  "Generate-RuntimeManifest.ps1 (automated -- FORU.TXT section 3, replaces manual Get-FileHash)",
+    "pathsAreRelativeTo":  "TITAN root (the directory containing this file)",
+    "components":  [
+                       {
+                           "id":  "Process",
+                           "displayName":  "Process",
+                           "exePath":  "PROCESS ENDPOINT\\titan_fixed\\out\\build\\release-manifest\\bin\\titan_process.exe",
+                           "sha256":  "897D0C9657E24DC9C106C31B5CA2188CABC6CEDAAF8C28647B6F48848D1EBAFD",
+                           "version":  "release-manifest-2026-09-01-all-endpoints-hardened",
+                           "requiresElevation":  true,
+                           "commandArguments":  "",
+                           "workingDirectory":  "PROCESS ENDPOINT\\titan_fixed\\out\\build\\release-manifest\\bin",
+                           "logDirectory":  "PROCESS ENDPOINT\\titan_fixed\\out\\build\\release-manifest\\bin\\logs",
+                           "controlChannelName":  "\\\\.\\pipe\\TitanEndpoint_Process_Control",
+                           "controlChannelImplemented":  true,
+                           "healthTimeoutSeconds":  45
+                       },
+                       {
+                           "id":  "Network",
+                           "displayName":  "Network",
+                           "exePath":  "NETOWRK ENDPOINT\\out\\build\\release-manifest\\titan.exe",
+                           "sha256":  "DADD973B10A78C087FCB007400363DB0DE14E9E8C0C2715FE51E9266009B4199",
+                           "version":  "release-manifest-2026-09-01-all-endpoints-hardened",
+                           "requiresElevation":  true,
+                           "commandArguments":  "",
+                           "workingDirectory":  "NETOWRK ENDPOINT\\out\\build\\release-manifest",
+                           "logDirectory":  "NETOWRK ENDPOINT\\out\\build\\release-manifest\\logs",
+                           "controlChannelName":  "\\\\.\\pipe\\TitanEndpoint_Network_Control",
+                           "controlChannelImplemented":  true,
+                           "healthTimeoutSeconds":  45
+                       },
+                       {
+                           "id":  "Application",
+                           "displayName":  "Applications",
+                           "exePath":  "APP\\out\\build\\release-manifest\\bin\\application_endpoint.exe",
+                           "sha256":  "7F9A451F47DA7B7368CF6A61F28E9B25D36E5274B3506861ED371ADF75DA3D43",
+                           "version":  "release-manifest-2026-09-01-all-endpoints-hardened",
+                           "requiresElevation":  true,
+                           "commandArguments":  "",
+                           "workingDirectory":  "APP\\out\\build\\release-manifest\\bin",
+                           "logDirectory":  "APP\\out\\build\\release-manifest\\bin\\logs",
+                           "controlChannelName":  "\\\\.\\pipe\\TitanEndpoint_Application_Control",
+                           "controlChannelImplemented":  true,
+                           "healthTimeoutSeconds":  45
+                       },
+                       {
+                           "id":  "File",
+                           "displayName":  "Files",
+                           "exePath":  "FILEEE\\out\\build\\release-manifest\\bin\\Release\\file_test.exe",
+                           "sha256":  "3FD435CCE6F1538257991CC92AD54BE0178A9D15EFCE0204D26AF76A7B6D9708",
+                           "version":  "release-manifest-2026-09-01-all-endpoints-hardened",
+                           "requiresElevation":  true,
+                           "commandArguments":  "",
+                           "workingDirectory":  "FILEEE\\out\\build\\release-manifest\\bin\\Release",
+                           "logDirectory":  "FILEEE\\out\\build\\release-manifest\\bin\\Release\\logs",
+                           "controlChannelName":  "\\\\.\\pipe\\TitanEndpoint_File_Control",
+                           "controlChannelImplemented":  true,
+                           "healthTimeoutSeconds":  45
+                       },
+                       {
+                           "id":  "Port",
+                           "displayName":  "Port / USB",
+                           "exePath":  "PORT ENDPOINT\\out\\build\\release-manifest\\bin\\usb_test.exe",
+                           "sha256":  "D12FA71298BF60C88EDA13815146852B61AFCE6FE2B6B5325F80CCF44840989B",
+                           "version":  "release-manifest-2026-09-01-all-endpoints-hardened",
+                           "requiresElevation":  true,
+                           "commandArguments":  "",
+                           "workingDirectory":  "PORT ENDPOINT\\out\\build\\release-manifest\\bin",
+                           "logDirectory":  "C:\\ProgramData\\TitanUSB\\logs",
+                           "controlChannelName":  "\\\\.\\pipe\\TitanEndpoint_Port_Control",
+                           "controlChannelImplemented":  true,
+                           "healthTimeoutSeconds":  45
+                       },
+                       {
+                           "id":  "Correlator",
+                           "displayName":  "Correlator",
+                           "exePath":  "CORRELATOR\\out\\build\\release-manifest\\bin\\correlator.exe",
+                           "sha256":  "6B60B7E31EDCC0A6D03BFA05DF199BB5E16F8325CB719BC2A073EF5A34757F2E",
+                           "version":  "release-manifest-2026-09-01-all-endpoints-hardened",
+                           "requiresElevation":  false,
+                           "commandArguments":  "",
+                           "workingDirectory":  "CORRELATOR\\out\\build\\release-manifest\\bin",
+                           "logDirectory":  "CORRELATOR\\out\\build\\release-manifest\\bin\\logs",
+                           "controlChannelName":  "\\\\.\\pipe\\TitanEndpoint_Correlator_Control",
+                           "controlChannelImplemented":  true,
+                           "healthTimeoutSeconds":  45
+                       }
+                   ]
+}

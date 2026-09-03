@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "TitanEndpoint.App/1.0.0": {
+        "dependencies": {
+          "TitanEndpoint.Core": "1.0.0"
+        },
+        "runtime": {
+          "TitanEndpoint.App.dll": {}
+        }
+      },
+      "TitanEndpoint.Core/1.0.0": {
+        "runtime": {
+          "TitanEndpoint.Core.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "TitanEndpoint.App/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "TitanEndpoint.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

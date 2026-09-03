@@ -1,0 +1,98 @@
+<UserControl x:Class="TitanEndpoint.App.Views.IncidentGraphView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:ctl="clr-namespace:TitanEndpoint.App.Controls">
+    <!-- Santosh, 2026-08-27: "just create another page and then put all the incident graph into
+         there." Split out of CorrelationGraphView, which cramming both the pentagon flow graph and
+         this incident list into one page (fighting over a shared, ultimately-fixed-size window)
+         made both hard to see clearly at once. This page reuses CorrelationGraphViewModel as-is
+         (Incidents/SelectedPairText/ShowAllIncidentsCommand/Header already live there) rather than
+         a new ViewModel class; the two pages each get their own independent instance, same as
+         Correlation and Correlation Graph already do for the same underlying live stream. -->
+    <UserControl.DataContext>
+        <vm:CorrelationGraphViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ctl:EndpointHeader Grid.Row="0" Header="{Binding Header}"/>
+
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,12,0,0">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                        <!-- Santosh, 2026-08-31: "it will just keep on moving... if I wanted to select
+                             one particular incident I was not able to select even though if I click on
+                             it, it will just keep on going up." New incidents insert at the top
+                             continuously with nothing to hold the list still. Pause freezes what is
+                             visible (nothing is lost; it keeps accumulating underneath) so a card can
+                             actually be read or clicked before it scrolls away. -->
+                        <CheckBox Content="Pause Live Updates" IsChecked="{Binding IsPaused}" VerticalAlignment="Center" Margin="0,0,10,0"
+                                  AutomationProperties.AutomationId="PauseIncidentGraphToggle"/>
+                        <Button Content="Show All Incidents" Command="{Binding ShowAllIncidentsCommand}" Padding="8,3" FontSize="11"
+                                AutomationProperties.AutomationId="ShowAllIncidentsButton"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Incident Graph — Live Incidents" Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock Text="Each incident below is one real correlated group: every endpoint it actually touched, in order, plus what is common across all of them (process, PID, time span). New incidents appear here continuously as the Correlator joins real activity; click a connection badge on the Correlation Graph page to narrow this list to a specific pair, or Pause Live Updates above to hold the list still."
+                                   Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                        <TextBlock Text="{Binding SelectedPairText}" Style="{StaticResource SecondaryTextStyle}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,4,0,0" AutomationProperties.AutomationId="CorrelationGraphSelectedPairText"/>
+                    </StackPanel>
+                </DockPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" AutomationProperties.AutomationId="CorrelationGraphChainsScroll">
+                    <ItemsControl ItemsSource="{Binding Incidents}" AutomationProperties.AutomationId="CorrelationGraphChainsList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:IncidentViewModel}">
+                                <Border BorderBrush="{StaticResource BorderBrush2}" BorderThickness="0,0,0,1" Padding="0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding HeaderText}" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding CommonSummaryText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5"
+                                                   TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                                            <ItemsControl ItemsSource="{Binding Segments}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type vm:ChainSegmentViewModel}">
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Border Style="{StaticResource CardStyle}" Width="200" Margin="2">
+                                                                <StackPanel>
+                                                                    <DockPanel>
+                                                                        <Button DockPanel.Dock="Right" Content="Evidence" FontSize="9" Padding="4,1" Command="{Binding Member.OpenEvidenceCommand}"
+                                                                                AutomationProperties.Name="{Binding Member.DisplayEndpoint, StringFormat=Open evidence for {0}}"/>
+                                                                        <TextBlock Text="{Binding Member.DisplayEndpoint}" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
+                                                                    </DockPanel>
+                                                                    <TextBlock Text="{Binding Member.RecordType}" Style="{StaticResource MonoTextStyle}" FontSize="9.5" Margin="0,1,0,0"/>
+                                                                    <TextBlock Text="{Binding Member.SubjectDetailText}" Style="{StaticResource MonoTextStyle}" FontSize="10" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                                                    <TextBlock Text="{Binding Member.PidText}" Style="{StaticResource SecondaryTextStyle}" FontSize="9.5" Margin="0,3,0,0"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                            <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="2,0" Width="72">
+                                                                <TextBlock Text="{Binding ArrowText}" FontSize="16" HorizontalAlignment="Center"/>
+                                                                <TextBlock Text="{Binding EdgeLabelToNext}" FontSize="8.5" Style="{StaticResource SecondaryTextStyle}"
+                                                                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                                                            </StackPanel>
+                                                        </StackPanel>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                        <TextBlock Text="{Binding MoreSegmentsText}" Style="{StaticResource SecondaryTextStyle}" FontSize="9.5"
+                                                   FontStyle="Italic" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

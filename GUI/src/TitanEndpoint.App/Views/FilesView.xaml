@@ -1,0 +1,96 @@
+<UserControl x:Class="TitanEndpoint.App.Views.FilesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:ctl="clr-namespace:TitanEndpoint.App.Controls"
+             xmlns:common="clr-namespace:TitanEndpoint.App.Common">
+    <UserControl.DataContext>
+        <vm:FilesViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ctl:EndpointHeader Grid.Row="0" Header="{Binding Header}"/>
+
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                     Width="320" HorizontalAlignment="Left"
+                     ToolTip="Filter by path, process or operation"
+                     AutomationProperties.Name="Filter file events"
+                     AutomationProperties.AutomationId="FilesFilterTextBox"/>
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding SummaryText}" Style="{StaticResource SecondaryTextStyle}"/>
+                <TextBlock Text="{Binding RowActions.LastResultText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <DataGrid x:Name="FilesGrid" Grid.Column="0" ItemsSource="{Binding RowsView}" AutoGenerateColumns="False"
+                      AutomationProperties.Name="File events"
+                      AutomationProperties.AutomationId="FileEventsGrid"
+                      common:LayoutPersistence.GridKey="FileEventsGrid">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="90"/>
+                    <DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="90"/>
+                    <DataGridTextColumn Header="Process" Binding="{Binding Process}" Width="120"/>
+                    <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="70"/>
+                    <DataGridTextColumn Header="Hash Status" Binding="{Binding HashStatus}" Width="120"/>
+                    <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*"/>
+                </DataGrid.Columns>
+                <!-- Santosh, 2026-08-04: same per-row Open Location/Stop/Isolate actions as Process
+                     — "Stop" here stops the process that touched the file, not the file itself.
+                     Menu is built in code-behind (RowActionsContextMenuHelper.Attach) — see that
+                     helper's doc comment for why a declarative ContextMenu here silently no-ops. -->
+            </DataGrid>
+
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                <StackPanel DataContext="{Binding HashTool}">
+                    <TextBlock Text="Hash a File" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+                    <Button Content="Choose File..." HorizontalAlignment="Left" Click="ChooseFile_Click"
+                            AutomationProperties.Name="Choose file to hash"
+                            AutomationProperties.AutomationId="ChooseFileToHashButton"/>
+                    <TextBlock Text="{Binding SelectedPath}" Style="{StaticResource MonoTextStyle}" FontSize="10.5"
+                               TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" Maximum="1" Height="6" Margin="0,10,0,0"
+                                 Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding StatusText}" Style="{StaticResource SecondaryTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap"
+                               AutomationProperties.AutomationId="HashStatusText"/>
+                    <TextBlock Text="{Binding HashResult}" Style="{StaticResource MonoTextStyle}" FontSize="10.5"
+                               TextWrapping="Wrap" Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding BaselineStateText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" Margin="0,6,0,0"
+                               AutomationProperties.AutomationId="BaselineStateText"/>
+                    <TextBlock Text="File changed size or timestamp WHILE hashing — do not trust this result." Foreground="{StaticResource CriticalBrush}"
+                               FontSize="10.5" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Visibility="{Binding WasUnstableDuringHash, Converter={StaticResource BoolToVis}}"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                        <Button Content="Copy" Command="{Binding CopyCommand}"
+                                AutomationProperties.Name="Copy hash result" AutomationProperties.AutomationId="CopyHashResultButton"/>
+                        <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="8,0,0,0"
+                                AutomationProperties.Name="Cancel hashing" AutomationProperties.AutomationId="CancelHashButton"/>
+                    </StackPanel>
+                    <Button Content="Save as Baseline" Command="{Binding ApproveBaselineCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Left" Margin="0,10,0,0"
+                            AutomationProperties.Name="Save hash as baseline" AutomationProperties.AutomationId="SaveHashBaselineButton"/>
+                    <TextBlock Text="Approving stores this SHA-256 with stable file identity, size and timestamp. The baseline store is atomically saved and authenticated by a per-user DPAPI-protected key. Replacing an existing baseline requires confirmation."
+                               Style="{StaticResource SecondaryTextStyle}" FontSize="10" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,18 @@
+<UserControl x:Class="TitanEndpoint.App.Controls.PerformanceGraph"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid ClipToBounds="True">
+        <Canvas x:Name="GridLines"/>
+        <Polygon x:Name="Fill" Fill="{StaticResource AccentBrushSoft}"/>
+        <Polyline x:Name="Line" Stroke="{StaticResource AccentBrush}" StrokeThickness="2"
+                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" SnapsToDevicePixels="True"/>
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,2,4,0">
+            <TextBlock x:Name="CurrentValueText" FontFamily="{StaticResource MonoFont}" FontSize="12" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}"/>
+        </StackPanel>
+        <TextBlock x:Name="ScaleMaxText" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="4,2,0,0"
+                   FontSize="9.5" Foreground="{StaticResource TextDisabledBrush}"/>
+        <TextBlock x:Name="ScaleMinText" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="4,0,0,2"
+                   FontSize="9.5" Foreground="{StaticResource TextDisabledBrush}"/>
+    </Grid>
+</UserControl>

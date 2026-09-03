@@ -1,0 +1,309 @@
+<UserControl x:Class="TitanEndpoint.App.Views.NetworkView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:ctl="clr-namespace:TitanEndpoint.App.Controls"
+             xmlns:common="clr-namespace:TitanEndpoint.App.Common">
+    <UserControl.DataContext>
+        <vm:NetworkViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ctl:EndpointHeader Grid.Row="0" Header="{Binding Header}"/>
+
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,8" Padding="10,7">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding CaptureBar.CaptureStatusText}"
+                           Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="NetworkCaptureStateText"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CaptureBar.StatsText}"
+                           Style="{StaticResource SecondaryTextStyle}" Margin="12,0" VerticalAlignment="Center"
+                           AutomationProperties.AutomationId="NetworkCaptureStatsText"/>
+                <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal">
+                    <TextBlock Text="{Binding CaptureBar.RetainedSizeText}" Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CaptureBar.ElapsedText}" Style="{StaticResource MonoTextStyle}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding SummaryText}" Style="{StaticResource SecondaryTextStyle}" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,7,0,0">
+                    <TextBlock Text="Display filter" Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <ComboBox Width="330" IsEditable="True"
+                              ItemsSource="{Binding CaptureBar.RecentDisplayFilters}"
+                              Text="{Binding CaptureBar.DisplayFilter, UpdateSourceTrigger=PropertyChanged}"
+                              ToolTip="{Binding FilterHelpText}"
+                              AutomationProperties.Name="Network display filter"
+                              AutomationProperties.AutomationId="NetworkDisplayFilterTextBox"/>
+                    <Button Content="Apply" Command="{Binding CaptureBar.ApplyDisplayFilterCommand}" Padding="8,3" Margin="6,0,0,0"
+                            AutomationProperties.Name="Apply network display filter" AutomationProperties.AutomationId="ApplyNetworkDisplayFilterButton"/>
+                    <Button Content="Clear" Command="{Binding CaptureBar.ClearDisplayFilterCommand}" Padding="8,3" Margin="4,0,0,0"
+                            AutomationProperties.Name="Clear network display filter" AutomationProperties.AutomationId="ClearNetworkDisplayFilterButton"/>
+                    <Button Content="Save filter" Command="{Binding CaptureBar.SaveFilterCommand}" Padding="8,3" Margin="4,0,0,0"
+                            AutomationProperties.Name="Save recent display filter" AutomationProperties.AutomationId="SaveNetworkDisplayFilterButton"/>
+                    <TextBlock Text="{Binding CaptureBar.DisplayFilterValidation}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" Margin="8,0" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding CaptureBar.AvailableAdapters}" SelectedItem="{Binding CaptureBar.SelectedAdapter}"
+                              Width="205" Margin="8,0,0,0" ToolTip="{Binding CaptureBar.AdapterFilterNote}"
+                              AutomationProperties.Name="Adapter display filter" AutomationProperties.AutomationId="NetworkAdapterComboBox"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="6"/>
+                    <RowDefinition Height="1.4*" MinHeight="160"/>
+                </Grid.RowDefinitions>
+
+                <DataGrid Grid.Row="0" ItemsSource="{Binding RowsView}" AutoGenerateColumns="False"
+                          SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+                          AutomationProperties.Name="Packet list"
+                          AutomationProperties.AutomationId="NetworkPacketGrid"
+                          common:LayoutPersistence.GridKey="NetworkPacketGrid">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                        <DataGridTextColumn Header="Process" Binding="{Binding Process}" Width="170"/>
+                        <DataGridTextColumn Header="Local" Binding="{Binding LocalAddress}" Width="180"/>
+                        <DataGridTextColumn Header="Remote" Binding="{Binding RemoteAddress}" Width="180"/>
+                        <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="90"/>
+                        <DataGridTextColumn Header="Dir" Binding="{Binding Direction}" Width="70"/>
+                        <DataGridTextColumn Header="State" Binding="{Binding State}" Width="90"/>
+                        <DataGridTextColumn Header="Sent" Binding="{Binding BytesSent}" Width="70"/>
+                        <DataGridTextColumn Header="Recv" Binding="{Binding BytesRecv}" Width="70"/>
+                        <DataGridTextColumn Header="Length" Binding="{Binding Length}" Width="70"/>
+                        <DataGridTextColumn Header="Adapter" Binding="{Binding Adapter}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="{StaticResource BorderBrush2}"
+                              common:LayoutPersistence.SplitterKey="Network"/>
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="Protocol Details" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+                            <TreeView DockPanel.Dock="Top" Height="170" ItemsSource="{Binding ProtocolTree}" Background="Transparent" BorderThickness="0" SelectedItemChanged="ProtocolTree_SelectedItemChanged"
+                                      AutomationProperties.Name="Protocol details tree"
+                                      AutomationProperties.AutomationId="ProtocolDetailsTree">
+                                <TreeView.ItemContainerStyle>
+                                    <Style TargetType="TreeViewItem">
+                                        <Setter Property="IsExpanded" Value="True"/>
+                                    </Style>
+                                </TreeView.ItemContainerStyle>
+                                <TreeView.ItemTemplate>
+                                    <HierarchicalDataTemplate DataType="{x:Type vm:ProtocolTreeNode}" ItemsSource="{Binding Children}">
+                                        <StackPanel Orientation="Horizontal" Margin="0,2">
+                                            <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Margin="0,0,6,0"/>
+                                            <TextBlock Text="{Binding Value}" Style="{StaticResource MonoTextStyle}" FontSize="11" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </HierarchicalDataTemplate>
+                                </TreeView.ItemTemplate>
+                            </TreeView>
+                            <TextBox DockPanel.Dock="Bottom" Text="{Binding SelectedFieldBytesText, Mode=OneWay}" IsReadOnly="True"
+                                     MaxHeight="90" VerticalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="10"/>
+                        </DockPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Top">
+                                <TextBlock Text="Raw Capture / Bytes" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding BytesPaneMessage}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"
+                                           AutomationProperties.AutomationId="NetworkBytesPaneMessage"/>
+                            </StackPanel>
+                            <Button DockPanel.Dock="Bottom" Content="Open Raw Capture Folder" Command="{Binding OpenRawCaptureFolderCommand}"
+                                    HorizontalAlignment="Left" Margin="0,8,0,0"
+                                    AutomationProperties.Name="Open raw capture folder"
+                                    AutomationProperties.AutomationId="OpenRawCaptureFolderButton"/>
+                            <TabControl Background="Transparent" BorderThickness="0">
+                                <TabItem Header="Segments">
+                                    <ItemsControl ItemsSource="{Binding RawCaptureFiles}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:RawCaptureFileViewModel}">
+                                                <Grid Margin="0,3">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding FileName}" Style="{StaticResource MonoTextStyle}" FontSize="10.5" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding SizeText}" Style="{StaticResource MonoTextStyle}" FontSize="10.5" Margin="8,0"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding LastWriteText}" Style="{StaticResource MonoTextStyle}" FontSize="10.5"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </TabItem>
+                                <TabItem Header="Raw JSON">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                        <TextBox Text="{Binding RawJsonText, Mode=OneWay}" IsReadOnly="True" BorderThickness="0"
+                                                 Background="Transparent" FontFamily="{StaticResource MonoFont}" FontSize="11" TextWrapping="NoWrap"/>
+                                    </ScrollViewer>
+                                </TabItem>
+                                <TabItem Header="Packet Bytes">
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Top">
+                                            <TextBlock Text="{Binding PacketBytes.StatusMessage}" Style="{StaticResource SecondaryTextStyle}"
+                                                       TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                <Button Content="Copy hex" Command="{Binding PacketBytes.CopyAsHexCommand}" Padding="6,2"/>
+                                                <Button Content="Copy escaped" Command="{Binding PacketBytes.CopyAsEscapedCommand}" Padding="6,2" Margin="4,0,0,0"/>
+                                                <Button Content="Copy text" Command="{Binding PacketBytes.CopyAsTextCommand}" Padding="6,2" Margin="4,0,0,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                                            <ItemsControl ItemsSource="{Binding PacketBytes.Lines}" FontFamily="{StaticResource MonoFont}" FontSize="10.5"
+                                                          AutomationProperties.AutomationId="PacketBytesLines">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type vm:HexLine}">
+                                                        <Border Padding="2,1">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="Background" Value="Transparent"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Highlight}" Value="{x:Static vm:HighlightKind.Highlighted}">
+                                                                            <Setter Property="Background" Value="#665E4A12"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="58"/>
+                                                                    <ColumnDefinition Width="350"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding Offset}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding HexText}"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding AsciiText}"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </DockPanel>
+                                </TabItem>
+                            </TabControl>
+                        </DockPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <!-- FORU.TXT: "move Protocol Hierarchy, Conversations, Endpoints/Top Talkers ... out of
+                 the cramped permanent sidebar into clear tabs or dockable panels." These three were
+                 previously permanently stacked in a fixed-width, non-scrolling sidebar; each is now
+                 its own tab so none of them fight the others for vertical space. -->
+            <TabControl x:Name="InvestigationTabs" Grid.Column="2" Margin="12,0,0,0" Background="Transparent"
+                        AutomationProperties.Name="Investigation workspaces"
+                        AutomationProperties.AutomationId="NetworkInvestigationTabs"
+                        SelectionChanged="InvestigationTabs_SelectionChanged">
+                <TabItem Header="Protocol Hierarchy">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding ProtocolHierarchy}"
+                                          AutomationProperties.Name="Protocol hierarchy"
+                                          AutomationProperties.AutomationId="ProtocolHierarchyList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:ProtocolCountViewModel}">
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Protocol}"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Count}" Style="{StaticResource MonoTextStyle}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+
+                <TabItem Header="Top Talkers">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding TopTalkers}"
+                                          AutomationProperties.Name="Top talkers in view"
+                                          AutomationProperties.AutomationId="TopTalkersList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:TopTalkerViewModel}">
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding RemoteAddress}" Style="{StaticResource MonoTextStyle}" FontSize="10.5" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding TotalBytes}" Style="{StaticResource MonoTextStyle}" FontSize="10.5"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </TabItem>
+
+                <TabItem Header="Conversations">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,6">
+                                <Button DockPanel.Dock="Right" Content="Export" Command="{Binding ExportConversationCommand}" Padding="6,2"
+                                        AutomationProperties.Name="Export selected conversation" AutomationProperties.AutomationId="ExportConversationButton"/>
+                                <Button DockPanel.Dock="Right" Content="Follow TCP Stream..." Command="{Binding FollowStreamCommand}" Padding="6,2" Margin="0,0,6,0"
+                                        AutomationProperties.Name="Open selected TCP conversation stream" AutomationProperties.AutomationId="FollowTcpStreamButton"/>
+                                <TextBlock Text="Conversations / Follow Stream" Style="{StaticResource SectionLabelStyle}"/>
+                            </DockPanel>
+                            <DataGrid ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation, Mode=TwoWay}"
+                                      AutoGenerateColumns="False" Height="220" HeadersVisibility="Column"
+                                      AutomationProperties.Name="Conversations"
+                                      AutomationProperties.AutomationId="ConversationsGrid"
+                                      common:LayoutPersistence.GridKey="ConversationsGrid">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Peer A" Binding="{Binding EndpointA}" Width="*"/>
+                                    <DataGridTextColumn Header="Peer B" Binding="{Binding EndpointB}" Width="*"/>
+                                    <DataGridTextColumn Header="Transport" Binding="{Binding Transport}" Width="70"/>
+                                    <DataGridTextColumn Header="Proto" Binding="{Binding Protocol}" Width="55"/>
+                                    <DataGridTextColumn Header="Pkts" Binding="{Binding Packets}" Width="45"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBox Text="{Binding FollowStreamText, Mode=OneWay}" IsReadOnly="True" Height="220" Margin="0,6,0,0"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap"
+                                     FontFamily="{StaticResource MonoFont}" FontSize="10"
+                                     AutomationProperties.Name="Follow stream text"
+                                     AutomationProperties.AutomationId="FollowStreamTextBox"/>
+                        </StackPanel>
+                    </Border>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</UserControl>

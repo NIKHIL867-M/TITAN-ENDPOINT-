@@ -1,0 +1,792 @@
+{
+  "MainWindow.Bounds": {
+    "Left": 0,
+    "Top": 0,
+    "Width": 1414.4,
+    "Height": 822.4000000000001,
+    "Maximized": true
+  },
+  "Network.InvestigationTabIndex": 0,
+  "Grid.CorrelationGroupsGrid": [
+    {
+      "Header": "Time",
+      "Width": 110,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "ID",
+      "Width": 90,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Records",
+      "Width": 70,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Unique",
+      "Width": 65,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Repeats",
+      "Width": 65,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Sources",
+      "Width": 240,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Time Span",
+      "Width": 110,
+      "DisplayIndex": 6,
+      "Visible": true
+    },
+    {
+      "Header": "Connection",
+      "Width": 527.2,
+      "DisplayIndex": 7,
+      "Visible": true
+    }
+  ],
+  "Splitter.Correlation": 302.10545454545445,
+  "Grid.ProcessEventsGrid": [
+    {
+      "Header": "Time",
+      "Width": 100,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Action",
+      "Width": 110,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Process",
+      "Width": 160,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "PID",
+      "Width": 70,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "PPID",
+      "Width": 70,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "User",
+      "Width": 150,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Integrity",
+      "Width": 80,
+      "DisplayIndex": 6,
+      "Visible": true
+    },
+    {
+      "Header": "Elevation",
+      "Width": 80,
+      "DisplayIndex": 7,
+      "Visible": true
+    },
+    {
+      "Header": "Signer",
+      "Width": 150,
+      "DisplayIndex": 8,
+      "Visible": true
+    },
+    {
+      "Header": "Command Line",
+      "Width": 213.5999999999999,
+      "DisplayIndex": 9,
+      "Visible": true
+    }
+  ],
+  "Splitter.Process": 346.1624999999999,
+  "Grid.NetworkPacketGrid": [
+    {
+      "Header": "Time",
+      "Width": 76.82,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Process",
+      "Width": 146.82,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Local",
+      "Width": 156.82,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Remote",
+      "Width": 156.82,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Protocol",
+      "Width": 66.82,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Dir",
+      "Width": 46.81999999999999,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "State",
+      "Width": 66.82,
+      "DisplayIndex": 6,
+      "Visible": true
+    },
+    {
+      "Header": "Sent",
+      "Width": 46.81999999999999,
+      "DisplayIndex": 7,
+      "Visible": true
+    },
+    {
+      "Header": "Recv",
+      "Width": 46.81999999999999,
+      "DisplayIndex": 8,
+      "Visible": true
+    },
+    {
+      "Header": "Length",
+      "Width": 46.81999999999999,
+      "DisplayIndex": 9,
+      "Visible": true
+    },
+    {
+      "Header": "Adapter",
+      "Width": 20,
+      "DisplayIndex": 10,
+      "Visible": true
+    }
+  ],
+  "Splitter.Network": 319,
+  "TableDensity.Compact": false,
+  "Grid.ConversationsGrid": [
+    {
+      "Header": "Peer A",
+      "Width": 73.1,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Peer B",
+      "Width": 73.1,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Transport",
+      "Width": 70,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Proto",
+      "Width": 55,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Pkts",
+      "Width": 45,
+      "DisplayIndex": 4,
+      "Visible": true
+    }
+  ],
+  "Grid.PortUsbEventsGrid": [
+    {
+      "Header": "Time",
+      "Width": 100,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Event",
+      "Width": 200,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Device",
+      "Width": 160,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "VID:PID",
+      "Width": 120,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Mount",
+      "Width": 80,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Detail",
+      "Width": 634,
+      "DisplayIndex": 5,
+      "Visible": true
+    }
+  ],
+  "Grid.LogCatalogGrid": [
+    {
+      "Header": "Endpoint",
+      "Width": 110,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Active File",
+      "Width": 180,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Write State",
+      "Width": 140,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Current Size",
+      "Width": 90,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Total Retained",
+      "Width": 100,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Records (session)",
+      "Width": 110,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Last Write",
+      "Width": 140,
+      "DisplayIndex": 6,
+      "Visible": true
+    },
+    {
+      "Header": "Last Write Error",
+      "Width": 160,
+      "DisplayIndex": 7,
+      "Visible": true
+    },
+    {
+      "Header": "Directory",
+      "Width": 154,
+      "DisplayIndex": 8,
+      "Visible": true
+    },
+    {
+      "Header": "",
+      "Width": 110,
+      "DisplayIndex": 9,
+      "Visible": true
+    }
+  ],
+  "Splitter.UnifiedLogs": 298.8595238095238,
+  "Grid.ApprovedRulesGrid": [
+    {
+      "Header": "ID",
+      "Width": 20,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Status",
+      "Width": 20,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Severity",
+      "Width": 20,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Trigger",
+      "Width": 20,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Response",
+      "Width": 20,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Created",
+      "Width": 20,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Rule Text",
+      "Width": 20,
+      "DisplayIndex": 6,
+      "Visible": true
+    }
+  ],
+  "Grid.WatcherActivityGrid": [
+    {
+      "Header": "Time",
+      "Width": 80,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Status",
+      "Width": 120,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Event",
+      "Width": 140,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Process / Entity",
+      "Width": 575.2,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Rule",
+      "Width": 90,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Outcome",
+      "Width": 260,
+      "DisplayIndex": 5,
+      "Visible": true
+    }
+  ],
+  "Grid.WatcherCoverageGrid": [
+    {
+      "Header": "Event / Watch Area",
+      "Width": 220,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Status",
+      "Width": 100,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Collector",
+      "Width": 160,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Mode",
+      "Width": 80,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Latency",
+      "Width": 70,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Fields",
+      "Width": 60,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Reason / Requirement",
+      "Width": 575.2,
+      "DisplayIndex": 6,
+      "Visible": true
+    }
+  ],
+  "Grid.ApplicationActivityGrid": [
+    {
+      "Header": "Time",
+      "Width": 100,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Category",
+      "Width": 90,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Application",
+      "Width": 140,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Action",
+      "Width": 110,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "PID",
+      "Width": 60,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Network Activity",
+      "Width": 220,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Path",
+      "Width": 215.20000000000005,
+      "DisplayIndex": 6,
+      "Visible": true
+    }
+  ],
+  "Grid.CorrelationFlowSummaryGrid": [
+    {
+      "Header": "Endpoint",
+      "Width": 136.05673758865245,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Status",
+      "Width": 98.95035460992906,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Records Seen",
+      "Width": 123.68794326241132,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Cross-Links",
+      "Width": 111.3191489361702,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Last Seen",
+      "Width": 111.3191489361702,
+      "DisplayIndex": 4,
+      "Visible": true
+    }
+  ],
+  "Grid.SystemHealthGrid": [
+    {
+      "Header": "Component",
+      "Width": 122,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "State",
+      "Width": 102,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Heartbeat",
+      "Width": 82,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Session / PID",
+      "Width": 162,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Seen",
+      "Width": 77,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Written",
+      "Width": 77,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Queue",
+      "Width": 142,
+      "DisplayIndex": 6,
+      "Visible": true
+    },
+    {
+      "Header": "Lost/Failed",
+      "Width": 92,
+      "DisplayIndex": 7,
+      "Visible": true
+    },
+    {
+      "Header": "Retained",
+      "Width": 142,
+      "DisplayIndex": 8,
+      "Visible": true
+    },
+    {
+      "Header": "Restarts",
+      "Width": 72,
+      "DisplayIndex": 9,
+      "Visible": true
+    },
+    {
+      "Header": "Resource Pressure",
+      "Width": 122,
+      "DisplayIndex": 10,
+      "Visible": true
+    },
+    {
+      "Header": "Evidence Gap",
+      "Width": 82,
+      "DisplayIndex": 11,
+      "Visible": true
+    },
+    {
+      "Header": "Last Error",
+      "Width": 20,
+      "DisplayIndex": 12,
+      "Visible": true
+    }
+  ],
+  "Grid.AlertsGrid": [
+    {
+      "Header": "Time",
+      "Width": 86.56363636363636,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "",
+      "Width": 26.56363636363637,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Severity",
+      "Width": 76.56363636363636,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Event",
+      "Width": 116.56363636363636,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Rule",
+      "Width": 216.56363636363636,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Rule ID",
+      "Width": 96.56363636363636,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Mode",
+      "Width": 66.56363636363636,
+      "DisplayIndex": 6,
+      "Visible": true
+    },
+    {
+      "Header": "Action Results",
+      "Width": 156.56363636363636,
+      "DisplayIndex": 7,
+      "Visible": true
+    },
+    {
+      "Header": "Evidence Integrity",
+      "Width": 216.56363636363636,
+      "DisplayIndex": 8,
+      "Visible": true
+    },
+    {
+      "Header": "Summary",
+      "Width": 20,
+      "DisplayIndex": 9,
+      "Visible": true
+    },
+    {
+      "Header": "Ack",
+      "Width": 66.56363636363636,
+      "DisplayIndex": 10,
+      "Visible": true
+    },
+    {
+      "Header": "Investigate",
+      "Width": 131.56363636363636,
+      "DisplayIndex": 11,
+      "Visible": true
+    }
+  ],
+  "Grid.CorrelationGraphPairEventsGrid": [
+    {
+      "Header": "Time",
+      "Width": 58.799999999999955,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Group",
+      "Width": 20,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "First endpoint",
+      "Width": 345.73333333333335,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Second endpoint",
+      "Width": 20,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Reason",
+      "Width": 120,
+      "DisplayIndex": 4,
+      "Visible": true
+    }
+  ],
+  "Grid.CorrelationGroupsGridCompact": [
+    {
+      "Header": "Time",
+      "Width": 90,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "ID",
+      "Width": 80,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Sources",
+      "Width": 267.08000000000004,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "What Happened",
+      "Width": 388.48,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "Connection",
+      "Width": 315.64000000000004,
+      "DisplayIndex": 4,
+      "Visible": true
+    }
+  ],
+  "Splitter.CorrelationGraphMerged": 325.84000000000003,
+  "Grid.FileEventsGrid": [
+    {
+      "Header": "Time",
+      "Width": 100,
+      "DisplayIndex": 0,
+      "Visible": true
+    },
+    {
+      "Header": "Category",
+      "Width": 90,
+      "DisplayIndex": 1,
+      "Visible": true
+    },
+    {
+      "Header": "Operation",
+      "Width": 90,
+      "DisplayIndex": 2,
+      "Visible": true
+    },
+    {
+      "Header": "Process",
+      "Width": 120,
+      "DisplayIndex": 3,
+      "Visible": true
+    },
+    {
+      "Header": "PID",
+      "Width": 70,
+      "DisplayIndex": 4,
+      "Visible": true
+    },
+    {
+      "Header": "Hash Status",
+      "Width": 120,
+      "DisplayIndex": 5,
+      "Visible": true
+    },
+    {
+      "Header": "Path",
+      "Width": 252.20000000000005,
+      "DisplayIndex": 6,
+      "Visible": true
+    }
+  ]
+}

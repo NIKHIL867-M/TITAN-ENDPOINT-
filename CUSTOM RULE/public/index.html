@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Understanding Layer v5 — Convert plain-English security rules into validated, structured IR using Groq LLM. Featuring human-in-the-loop action selection and live alerts feed.">
+    <title>AI Rule Engine — Understanding Layer v5</title>
+    <link rel="stylesheet" href="/index.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ═══ Header ═══ -->
+        <header class="header">
+            <div class="header__logo">
+                <div class="header__icon">🛡️</div>
+                <h1>AI Rule Engine</h1>
+            </div>
+            <p class="header__subtitle">
+                Understanding Layer v5 — Convert English rules into structured detection IR
+            </p>
+        </header>
+
+        <!-- ═══ Rule Input ═══ -->
+        <section class="input-section glass-panel" id="input-section">
+            <div class="glass-panel__title">
+                <span class="icon">✍️</span> Write Your Detection Rule
+            </div>
+            <textarea
+                id="rule-input"
+                class="rule-textarea"
+                placeholder="Describe your security detection rule in plain English...&#10;&#10;Example: &quot;Alert when powershell runs encoded commands&quot;"
+                maxlength="500"
+                spellcheck="true"
+            ></textarea>
+            <div class="input-footer">
+                <span id="char-counter" class="char-counter">0 / 500</span>
+                <button id="submit-btn" class="btn btn--primary" disabled>
+                    <span id="submit-text">Parse Rule</span>
+                    <div id="submit-spinner" class="spinner" style="display:none"></div>
+                </button>
+            </div>
+            <div class="examples">
+                <span class="examples__label">Try an example:</span>
+                <button class="example-chip" data-rule="Alert when powershell runs encoded commands">🔒 Encoded PowerShell</button>
+                <button class="example-chip" data-rule="If password attempt is more than 5 times then flag it and block entry for 3 minutes">🔑 Brute Force</button>
+                <button class="example-chip" data-rule="Detect when cmd.exe is spawned by a web server process">🌐 Web Shell</button>
+                <button class="example-chip" data-rule="Quarantine any process with a hash that doesn't match known-good list">🦠 Unknown Hash</button>
+            </div>
+        </section>
+
+        <!-- ═══ Pipeline Status ═══ -->
+        <section id="pipeline" class="pipeline glass-panel">
+            <div class="glass-panel__title">
+                <span class="icon">⚡</span> Pipeline Status
+            </div>
+            <div class="pipeline__steps">
+                <div class="pipeline__step" data-step="screening">
+                    <div class="step__dot">1</div>
+                    <div class="step__label">Screening</div>
+                </div>
+                <div class="pipeline__step" data-step="context">
+                    <div class="step__dot">2</div>
+                    <div class="step__label">Context</div>
+                </div>
+                <div class="pipeline__step" data-step="parsing">
+                    <div class="step__dot">3</div>
+                    <div class="step__label">LLM Parse</div>
+                </div>
+                <div class="pipeline__step" data-step="validating">
+                    <div class="step__dot">4</div>
+                    <div class="step__label">Validation</div>
+                </div>
+                <div class="pipeline__step" data-step="simulating">
+                    <div class="step__dot">5</div>
+                    <div class="step__label">Simulation</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══ Error Banner ═══ -->
+        <div id="error-banner" class="error-banner">
+            <div class="error-banner__title">⚠️ Pipeline Error</div>
+            <div id="error-detail" class="error-banner__detail"></div>
+        </div>
+
+        <!-- ═══ Injection Warning ═══ -->
+        <div id="injection-warning" class="injection-warning glass-panel">
+            <div class="glass-panel__title">
+                <span class="icon">🚨</span>
+                <span id="injection-title">Injection Alert</span>
+            </div>
+            <div id="injection-flags"></div>
+        </div>
+
+        <!-- ═══ Capability Gaps ═══ -->
+        <div id="capability-gaps" class="capability-gaps glass-panel">
+            <div class="glass-panel__title">
+                <span class="icon">⚠️</span> Capability Gaps
+            </div>
+            <div id="capability-list"></div>
+        </div>
+
+        <!-- ═══ Agent Status Panel ═══ -->
+        <div id="agent-status-panel" class="agent-status-panel glass-panel">
+            <div class="glass-panel__title">
+                <span class="icon">📡</span> Live Agent Status
+                <span id="agent-status-badge" class="badge badge--info" style="margin-left:auto">Loading...</span>
+            </div>
+            <div id="agent-status-body" class="agent-status-body"></div>
+        </div>
+
+        <!-- ═══ Results Grid ═══ -->
+        <section id="results" class="results">
+            <div class="results__grid">
+                <!-- IR Output -->
+                <div class="glass-panel">
+                    <div class="glass-panel__title">
+                        <span class="icon">📋</span> Intermediate Representation
+                    </div>
+                    <div id="ir-viewer" class="json-viewer">
+                        <!-- Syntax-highlighted JSON goes here -->
+                    </div>
+                </div>
+
+                <!-- Editable IR review modes -->
+                <div class="glass-panel full-width ir-editor-panel">
+                    <div class="glass-panel__title">
+                        <span class="icon">&#9998;</span> Review Rule IR
+                        <span id="draft-status" class="badge badge--success" style="margin-left:auto">Freshly validated</span>
+                    </div>
+                    <div class="mode-tabs" role="tablist" aria-label="IR editing mode">
+                        <button class="mode-tab active" data-mode="beginner" type="button">Beginner</button>
+                        <button class="mode-tab" data-mode="intermediate" type="button">Intermediate</button>
+                        <button class="mode-tab" data-mode="expert" type="button">Expert</button>
+                    </div>
+                    <div id="mode-beginner" class="mode-panel active">
+                        <p class="editor-help">Read-only view. Choose Intermediate for guided editing or Expert for the complete JSON.</p>
+                    </div>
+                    <div id="mode-intermediate" class="mode-panel">
+                        <div id="intermediate-editor"></div>
+                    </div>
+                    <div id="mode-expert" class="mode-panel">
+                        <label class="editor-label" for="expert-json">Complete Rule IR JSON</label>
+                        <textarea id="expert-json" class="expert-json" spellcheck="false"></textarea>
+                        <p class="editor-help">JSON syntax is checked locally. Click Re-validate to run semantic, capability, and simulation checks.</p>
+                    </div>
+                    <div id="mode-warning" class="editor-message editor-message--warning" hidden></div>
+                    <div id="draft-errors" class="editor-message editor-message--error" hidden></div>
+                    <div id="draft-diff" class="editor-message" hidden></div>
+                    <button id="recheck-draft" class="btn btn--primary" type="button" style="display:none">Re-validate &amp; Simulate</button>
+                </div>
+
+                <!-- Explanation -->
+                <div class="glass-panel">
+                    <div class="glass-panel__title">
+                        <span class="icon">💡</span> Explanation
+                    </div>
+                    <div id="explanation-panel">
+                        <div class="explanation-item">
+                            <div class="explanation-item__label">Matched Event</div>
+                            <div id="expl-event" class="explanation-item__value">—</div>
+                        </div>
+                        <div class="explanation-item">
+                            <div class="explanation-item__label">Inferred Threshold</div>
+                            <div id="expl-threshold" class="explanation-item__value">—</div>
+                        </div>
+                        <div class="explanation-item">
+                            <div class="explanation-item__label">Assumptions Made</div>
+                            <ul id="expl-assumptions" class="assumptions-list">
+                                <li>—</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Results -->
+                <div class="glass-panel full-width">
+                    <div class="glass-panel__title">
+                        <span class="icon">🧪</span> Simulation Results
+                        <span id="sim-summary" class="badge badge--info" style="margin-left:auto"></span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="sim-table">
+                            <thead>
+                                <tr>
+                                    <th>Event Data</th>
+                                    <th>Expected</th>
+                                    <th>Actual</th>
+                                    <th>Result</th>
+                                    <th>Explanation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sim-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meta bar -->
+            <div id="meta-bar" class="meta-bar">
+                <div class="meta-item">
+                    <span class="meta-item__label">Model:</span>
+                    <span id="meta-model">—</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-item__label">LLM Calls:</span>
+                    <span id="meta-budget">—</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-item__label">Time:</span>
+                    <span id="meta-time">—</span>
+                </div>
+            </div>
+
+            <!-- ═══ Action Selector Panel ═══ (Backend_Action_Evidence_Upgrade_Plan §A.4) -->
+            <div id="action-selector-panel" class="action-selector-panel glass-panel" style="display:none">
+                <div class="glass-panel__title">
+                    <span class="icon">⚙️</span> Choose Response Actions
+                    <span id="action-severity-badge" class="badge badge--info" style="margin-left:auto">Severity: —</span>
+                </div>
+                <div class="action-selector__hint" id="action-suggestion-hint">
+                    <!-- LLM suggestion reason shown here -->
+                </div>
+                <div id="action-checkboxes" class="action-checkboxes">
+                    <!-- Rendered by JS from /api/action-options -->
+                </div>
+                <p class="action-selector__note">
+                    ⚠ Alert is always safe. Kill Process and Isolate Host are destructive — confirm before approving.
+                </p>
+            </div>
+
+            <!-- Action bar -->
+            <div id="action-bar" class="action-bar">
+                <button id="approve-btn" class="btn btn--success">
+                    ✅ Approve Rule
+                </button>
+                <input
+                    id="reject-reason"
+                    class="reject-reason"
+                    type="text"
+                    placeholder="Reason for rejection (required)..."
+                >
+                <button id="reject-btn" class="btn btn--danger">
+                    ❌ Reject
+                </button>
+                <button id="reset-btn" class="btn btn--ghost">
+                    🔄 New Rule
+                </button>
+            </div>
+        </section>
+
+        <!-- ═══ Live Alerts Feed ═══ (Frontend_Tauri_Desktop_Plan — AlertsFeed component) -->
+        <section class="alerts-feed-section glass-panel" id="alerts-feed-section">
+            <div class="glass-panel__title">
+                <span class="icon">🔔</span> Live Alerts Feed
+                <span id="alerts-count-badge" class="badge badge--danger" style="margin-left:auto;display:none">0 new</span>
+                <span id="alerts-feed-status" class="badge badge--info" style="margin-left:8px">Polling...</span>
+            </div>
+            <div id="alerts-feed-body" class="alerts-feed-body">
+                <div class="alerts-feed-empty">No alerts yet — watcher is idle or not running</div>
+            </div>
+        </section>
+
+        <!-- ═══ Rule History ═══ -->
+        <section class="history-section glass-panel">
+            <div class="glass-panel__title">
+                <span class="icon">📜</span> Approved Rules
+                <span id="history-count" class="badge badge--info" style="margin-left:auto">0</span>
+            </div>
+            <div id="history-container">
+                <div class="history-empty">No approved rules yet</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- ═══ Evidence Viewer Modal ═══ (Frontend_Tauri_Desktop_Plan — EvidenceViewer component) -->
+    <div id="evidence-modal" class="evidence-modal" role="dialog" aria-modal="true" aria-labelledby="evidence-modal-title" style="display:none">
+        <div class="evidence-modal__backdrop" id="evidence-modal-backdrop"></div>
+        <div class="evidence-modal__dialog">
+            <div class="evidence-modal__header">
+                <span class="icon">🔍</span>
+                <h2 id="evidence-modal-title">Evidence Record</h2>
+                <button id="evidence-modal-close" class="evidence-modal__close" aria-label="Close evidence viewer">✕</button>
+            </div>
+            <div class="evidence-modal__body">
+                <div id="evidence-modal-meta" class="evidence-modal__meta"></div>
+                <div id="evidence-modal-content" class="json-viewer evidence-modal__json"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

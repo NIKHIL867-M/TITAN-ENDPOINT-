@@ -1,0 +1,49 @@
+# Native CMake build output (all 6 programs)
+out/
+**/out/build/
+**/out/final-audit*/
+**/out/regression-*/
+
+# .NET build output
+bin/
+obj/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Logs and runtime data (evidence, not source)
+logs/
+data/secrets/
+*.jsonl
+*.pcap
+NEW LOGS/
+OLDEST LOGS/
+SESSION_REPORT_*/
+STIX_VERIFICATION_SAMPLE/
+TITAN_STIX_EXPORT.json
+
+# Reports, docs, and screenshots
+reports/
+GUI_REPORT/
+techreport/
+GOT_OK/
+theu/
+ultimatetest/
+picture/
+*.docx
+*.png
+*.log
+report*.txt
+points.txt
+VISHNU.TXT
+wazuh-main/
+
+# Editor/OS noise
+.vs/
+.claude/
+*.user
+Thumbs.db
+

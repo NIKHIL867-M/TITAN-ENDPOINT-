@@ -1,0 +1,89 @@
+<UserControl x:Class="TitanEndpoint.App.Views.AlertsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:common="clr-namespace:TitanEndpoint.App.Common">
+    <UserControl.DataContext>
+        <vm:AlertsViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Margin="0,0,32,0">
+                    <TextBlock Text="WATCHER STATUS" Style="{StaticResource SectionLabelStyle}"/>
+                    <TextBlock Text="{Binding WatcherStatusText}" Margin="0,4,0,0" TextWrapping="Wrap" MaxWidth="420"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="RESPONSE MODE" Style="{StaticResource SectionLabelStyle}"/>
+                    <TextBlock Text="{Binding DryRunText}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBox Grid.Row="1" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                 Width="320" HorizontalAlignment="Left" Margin="0,0,0,8"
+                 ToolTip="Filter by rule text, severity, event type or summary"
+                 AutomationProperties.Name="Filter alerts"
+                 AutomationProperties.AutomationId="AlertsFilterTextBox"/>
+
+        <DockPanel Grid.Row="2" Margin="0,0,0,8">
+            <Button DockPanel.Dock="Right" Content="Load older verified alerts" Command="{Binding LoadOlderCommand}" Padding="8,3"
+                    AutomationProperties.Name="Load older verified alerts" AutomationProperties.AutomationId="LoadOlderAlertsButton"/>
+            <TextBlock Text="{Binding SummaryText}" Style="{StaticResource SecondaryTextStyle}"/>
+        </DockPanel>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding RowsView}" AutoGenerateColumns="False"
+                  AutomationProperties.Name="Alerts" AutomationProperties.AutomationId="AlertsGrid"
+                  common:LayoutPersistence.GridKey="AlertsGrid">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="90"/>
+                <DataGridTemplateColumn Header="" Width="30">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type vm:AlertRowViewModel}">
+                            <TextBlock Text="H" ToolTip="Historical (from before this GUI session started watching)" FontSize="10"
+                                       Foreground="{StaticResource TextDisabledBrush}" FontWeight="Bold"
+                                       Visibility="{Binding IsHistorical, Converter={StaticResource BoolToVis}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="80"/>
+                <DataGridTextColumn Header="Event" Binding="{Binding EventType}" Width="120"/>
+                <DataGridTextColumn Header="Rule" Binding="{Binding RuleText}" Width="220"/>
+                <DataGridTextColumn Header="Rule ID" Binding="{Binding RuleId}" Width="100"/>
+                <DataGridTextColumn Header="Mode" Binding="{Binding DryRun}" Width="70"/>
+                <DataGridTextColumn Header="Action Results" Binding="{Binding ActionResultsText}" Width="160"/>
+                <DataGridTextColumn Header="Evidence Integrity" Binding="{Binding IntegrityText}" Width="220"/>
+                <DataGridTextColumn Header="Summary" Binding="{Binding Summary}" Width="*"/>
+                <DataGridTemplateColumn Header="Ack" Width="70">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="{x:Type vm:AlertRowViewModel}">
+                            <Button Content="Ack" FontSize="10" Padding="4,1"
+                                    Command="{Binding DataContext.AcknowledgeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    CommandParameter="{Binding}"
+                                    IsEnabled="{Binding IsAcknowledged, Converter={StaticResource InverseBool}}"
+                                    AutomationProperties.Name="{Binding Summary, StringFormat=Acknowledge alert: {0}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Investigate" Width="135">
+                    <DataGridTemplateColumn.CellTemplate><DataTemplate DataType="{x:Type vm:AlertRowViewModel}">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Evidence" FontSize="10" Padding="4,1" Command="{Binding DataContext.OpenEvidenceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"
+                                    AutomationProperties.Name="{Binding Summary, StringFormat=Open evidence for: {0}}"/>
+                            <Button Content="Rule" FontSize="10" Padding="4,1" Margin="4,0,0,0" Command="{Binding DataContext.OpenRuleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}"
+                                    AutomationProperties.Name="{Binding RuleText, StringFormat=Open rule: {0}}"/>
+                        </StackPanel>
+                    </DataTemplate></DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

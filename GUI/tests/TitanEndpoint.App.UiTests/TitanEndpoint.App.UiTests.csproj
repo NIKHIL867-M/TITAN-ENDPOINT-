@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\TitanEndpoint.Core\TitanEndpoint.Core.csproj" />
+    <ProjectReference Include="..\..\src\TitanEndpoint.App\TitanEndpoint.App.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Windows-only PrintWindow-based screenshot capture for VisualRegressionTests.cs; this
+         project already only targets net8.0-windows. -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.8" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,26 @@
+# ── AI Understanding Layer v5 — Python dependencies ──
+# Layer 2: Rule authoring API (FastAPI)
+fastapi>=0.100.0
+uvicorn[standard]>=0.25.0
+pydantic-settings>=2.0.0
+groq>=0.4.0
+slowapi>=0.1.9
+# YAML rule-authoring fallback (app/yaml_rules.py) — write a rule directly
+# when the Groq API limit/quota is hit. Was already an installed transitive
+# dependency; declared explicitly now that app code imports it directly.
+PyYAML>=6.0
+
+# ── Watcher Agent (Layers 4-8) — runtime detection ──
+# pywin32: Windows Event Log subscription (win32evtlog.EvtSubscribe)
+# Required for the watcher agent. Windows only.
+pywin32>=305
+# psutil: process tree investigation on rule match
+psutil>=5.9.0
+# winotify: Windows toast notifications for alerts
+winotify>=1.1.0
+# pystray + Pillow: system tray icon
+pystray>=0.19.4
+Pillow>=9.0.0
+
+# Native Windows desktop GUI (no HTML/CSS/JavaScript runtime)
+PySide6>=6.7

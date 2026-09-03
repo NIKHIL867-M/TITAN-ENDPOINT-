@@ -1,0 +1,173 @@
+<UserControl x:Class="TitanEndpoint.App.Views.ProcessView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:ctl="clr-namespace:TitanEndpoint.App.Controls"
+             xmlns:common="clr-namespace:TitanEndpoint.App.Common">
+    <UserControl.DataContext>
+        <vm:ProcessViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ctl:EndpointHeader Grid.Row="0" Header="{Binding Header}"/>
+
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                     Width="320" HorizontalAlignment="Left"
+                     ToolTip="Filter by process name, PID, path, user or command line"
+                     AutomationProperties.Name="Filter process events"
+                     AutomationProperties.AutomationId="ProcessFilterTextBox"/>
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding SummaryText}" Style="{StaticResource SecondaryTextStyle}"/>
+                <TextBlock Text="{Binding RowActions.LastResultText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"/>
+                <RowDefinition Height="6"/>
+                <RowDefinition Height="1.2*" MinHeight="200"/>
+            </Grid.RowDefinitions>
+
+            <DataGrid x:Name="ProcessGrid" Grid.Row="0" ItemsSource="{Binding RowsView}" AutoGenerateColumns="False"
+                      SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+                      AutomationProperties.Name="Process events"
+                      AutomationProperties.AutomationId="ProcessEventsGrid"
+                      common:LayoutPersistence.GridKey="ProcessEventsGrid">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                    <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="110"/>
+                    <DataGridTextColumn Header="Process" Binding="{Binding ProcessName}" Width="160"/>
+                    <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="70"/>
+                    <DataGridTextColumn Header="PPID" Binding="{Binding ParentPid}" Width="70"/>
+                    <DataGridTextColumn Header="User" Binding="{Binding User}" Width="150"/>
+                    <DataGridTextColumn Header="Integrity" Binding="{Binding Integrity}" Width="80"/>
+                    <DataGridTextColumn Header="Elevation" Binding="{Binding Elevation}" Width="80"/>
+                    <DataGridTextColumn Header="Signer" Binding="{Binding SignerDisplayText}" Width="260">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="ToolTip" Value="{Binding SignerDisplayText}"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Command Line" Binding="{Binding CommandLine}" Width="*"/>
+                </DataGrid.Columns>
+                <!-- Santosh, 2026-08-04: "if I click any log I should need to get some option like
+                     stop or isolate or open in loc" — real per-row actions, see RowActionsViewModel.
+                     Menu itself is built in code-behind (RowActionsContextMenuHelper.Attach, called
+                     from ProcessView.xaml.cs) rather than declaratively here — see that helper's
+                     doc comment for why a declarative ContextMenu silently no-ops every click. -->
+            </DataGrid>
+
+            <GridSplitter Grid.Row="1" HorizontalAlignment="Stretch" Background="{StaticResource BorderBrush2}"
+                          common:LayoutPersistence.SplitterKey="Process"/>
+
+            <TabControl Grid.Row="2" Background="Transparent" BorderThickness="0" DataContext="{Binding Detail}">
+                <TabItem Header="Command Line">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <TextBlock Text="{Binding Selected.CommandLine}" Style="{StaticResource MonoTextStyle}" TextWrapping="Wrap"/>
+                    </Border>
+                </TabItem>
+                <TabItem Header="Signer">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SecondaryTextStyle}"><Run Text="Signer:"/></TextBlock>
+                            <TextBlock Text="{Binding Selected.Signer}" FontWeight="SemiBold" Margin="0,2,0,10"/>
+                            <TextBlock Style="{StaticResource SecondaryTextStyle}"><Run Text="Executable path:"/></TextBlock>
+                            <TextBlock Text="{Binding Selected.Path}" Style="{StaticResource MonoTextStyle}" TextWrapping="Wrap" FontSize="11"/>
+                        </StackPanel>
+                    </Border>
+                </TabItem>
+                <TabItem Header="Parent / Children">
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Parent" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,6"/>
+                                <ItemsControl ItemsSource="{Binding ParentEvents}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:ProcessRowViewModel}">
+                                            <TextBlock Margin="0,2" Style="{StaticResource MonoTextStyle}" FontSize="11">
+                                                <Run Text="{Binding Time, Mode=OneWay}"/><Run Text=" "/><Run Text="{Binding ProcessName, Mode=OneWay}"/><Run Text=" pid="/><Run Text="{Binding Pid, Mode=OneWay}"/>
+                                            </TextBlock>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="{Binding ParentFallbackText}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap"
+                                           Visibility="{Binding ParentEvents.Count, Converter={StaticResource ZeroToVisibleConverter}}"/>
+                            </DockPanel>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Top" Text="Children" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,6"/>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding ChildEvents}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:ProcessRowViewModel}">
+                                                <TextBlock Margin="0,2" Style="{StaticResource MonoTextStyle}" FontSize="11">
+                                                    <Run Text="{Binding Time, Mode=OneWay}"/><Run Text=" "/><Run Text="{Binding ProcessName, Mode=OneWay}"/><Run Text=" pid="/><Run Text="{Binding Pid, Mode=OneWay}"/>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                                <TextBlock Text="{Binding ChildFallbackText}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap"
+                                           Visibility="{Binding ChildEvents.Count, Converter={StaticResource ZeroToVisibleConverter}}"/>
+                            </DockPanel>
+                        </Border>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Related Evidence">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="{Binding RelatedEvidenceNote}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding RelatedEvidence}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:RelatedEvidenceRowViewModel}">
+                                            <Grid Margin="0,3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="90"/>
+                                                    <ColumnDefinition Width="100"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="200"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="0" Text="{Binding Time}" Style="{StaticResource MonoTextStyle}" FontSize="11"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Endpoint}" FontWeight="SemiBold" FontSize="11"/>
+                                                <TextBlock Grid.Column="2" Text="{Binding Summary}" Style="{StaticResource MonoTextStyle}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="3" Text="{Binding Confidence}" Style="{StaticResource SecondaryTextStyle}" FontSize="10"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+                </TabItem>
+                <TabItem Header="Raw Record">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                        <TextBox Text="{Binding Selected.RawJson, Mode=OneWay}" IsReadOnly="True" BorderThickness="0"
+                                 Background="Transparent" FontFamily="{StaticResource MonoFont}" FontSize="11" TextWrapping="NoWrap"
+                                 AutomationProperties.AutomationId="ProcessRawRecordTextBox"/>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Grid>
+</UserControl>

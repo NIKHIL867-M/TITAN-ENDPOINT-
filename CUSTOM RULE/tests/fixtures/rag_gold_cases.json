@@ -1,0 +1,22 @@
+[
+  {"name":"immediate_process","query":"Alert when Notepad starts","expected":["schema.process.start.v1","pattern.single_event.v1"]},
+  {"name":"sustained_process","query":"Alert if Notepad remains open longer than one minute","expected":["schema.process.start.v1","pattern.sustained_process.v1"]},
+  {"name":"ordered_chain","query":"Alert if Command Prompt launches PowerShell which then launches Notepad","expected":["schema.process.start.v1","pattern.ordered_correlation.v1"]},
+  {"name":"cooccurrence","query":"Alert if Notepad and Calculator are both running at the same time","expected":["schema.process.start.v1","pattern.cooccurrence.v1"]},
+  {"name":"process_network","query":"PowerShell starts then within two minutes connects outbound to a public IP","expected":["schema.process.start.v1","schema.network.connect.v1","pattern.ordered_correlation.v1"]},
+  {"name":"auth_aggregation","query":"Alert after more than five failed login attempts in ten minutes","expected":["schema.auth.login_failure.v1","pattern.aggregation.v1"]},
+  {"name":"usb","query":"Alert when a USB removable device connects","expected":["schema.usb.device_connect.v1"]},
+  {"name":"scheduled_task","query":"Alert when a scheduled task is created","expected":["schema.task.create.v1"]},
+  {"name":"service","query":"Alert when a new service is installed","expected":["schema.service.install.v1"]},
+  {"name":"defender","query":"Alert when Defender reports a malware threat","expected":["schema.defender.detection.v1"]},
+  {"name":"registry","query":"Alert when a registry value is changed","expected":["schema.registry.set.v1"]},
+  {"name":"file_create","query":"Alert when a file is created in a temporary folder","expected":["schema.file.create.v1"]},
+  {"name":"file_delete","query":"Alert when a file is deleted","expected":["schema.file.delete.v1"]},
+  {"name":"dns","query":"Alert on a suspicious DNS domain query","expected":["schema.dns.query.v1"]},
+  {"name":"inventory","query":"Alert when software is installed and inventory changes","expected":["schema.inventory.change.v1"]},
+  {"name":"firewall","query":"Alert when a Windows firewall rule changes","expected":["schema.firewall.rule_change.v1"]},
+  {"name":"script_block","query":"Alert when a PowerShell script block contains downloadstring","expected":["schema.powershell.script_block.v1"]},
+  {"name":"driver","query":"Alert when an unsigned kernel driver is loaded","expected":["schema.driver.load.v1"]},
+  {"name":"named_pipe","query":"Alert when a named pipe is created","expected":["schema.named_pipe.create.v1"]},
+  {"name":"wmi_persistence","query":"Alert on WMI persistence through an event subscription","expected":["schema.wmi.persistence.v1"]}
+]

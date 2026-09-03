@@ -1,0 +1,346 @@
+<UserControl x:Class="TitanEndpoint.App.Views.CustomRuleWizardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="900" Margin="0,0,0,20">
+
+            <!-- Stepper -->
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding Wizard.StageName}" Style="{StaticResource PageTitleStyle}"/>
+                <TextBlock Grid.Column="1" Text="Guided rule authoring — Describe → Review Structure → Test → Approve"
+                           Style="{StaticResource SecondaryTextStyle}" FontSize="11" VerticalAlignment="Bottom"/>
+            </Grid>
+
+            <!-- API health banner -->
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"
+                             Fill="{Binding Wizard.ApiReachable, Converter={StaticResource BoolToStatusBrushConverter}}"/>
+                    <TextBlock Text="{Binding Wizard.HealthText}" Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ═══ Stage 1: Describe ═══ -->
+            <StackPanel Visibility="{Binding Wizard.Stage, Converter={StaticResource StageEqualsConverter}, ConverterParameter=1}">
+                <!-- FORU.TXT 0.5.A: "Put two large first-class modes at the top... Do not hide YAML
+                     behind a small checkbox." Two equally-sized mode buttons, not a checkbox. -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" Content="WRITE IN ENGLISH" Command="{Binding Wizard.SelectEnglishModeCommand}"
+                            Margin="0,0,4,0" Padding="0,12" FontSize="13" FontWeight="SemiBold"
+                            AutomationProperties.Name="Write rule in English"
+                            AutomationProperties.AutomationId="SelectEnglishModeButton">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Wizard.IsYamlMode}" Value="False">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="#FF14161A"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Grid.Column="1" Content="WRITE / IMPORT YAML" Command="{Binding Wizard.SelectYamlModeCommand}"
+                            Margin="4,0,0,0" Padding="0,12" FontSize="13" FontWeight="SemiBold"
+                            AutomationProperties.Name="Write or import YAML"
+                            AutomationProperties.AutomationId="SelectYamlModeButton">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Wizard.IsYamlMode}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                        <Setter Property="Foreground" Value="#FF14161A"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Describe the rule in plain language" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"
+                                   Visibility="{Binding Wizard.IsYamlMode, Converter={StaticResource InverseBoolToVis}}"/>
+                        <TextBlock Text="Write or import the rule directly as YAML" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"
+                                   Visibility="{Binding Wizard.IsYamlMode, Converter={StaticResource BoolToVis}}"/>
+
+                        <StackPanel Visibility="{Binding Wizard.IsYamlMode, Converter={StaticResource InverseBoolToVis}}">
+                            <TextBox Text="{Binding Wizard.RuleText, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="120" VerticalScrollBarVisibility="Auto"
+                                     FontFamily="{StaticResource UiFont}" FontSize="13"
+                                     AutomationProperties.Name="Describe the rule in English"
+                                     AutomationProperties.AutomationId="RuleTextEnglishTextBox"/>
+                            <TextBlock Text="Example: &quot;Alert when powershell.exe spawns a network connection to a non-standard port within 30 seconds of a Word document opening.&quot;"
+                                       Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            <TextBlock Text="This text is sent to the Custom Rule service for AI-assisted parsing — nothing here is executed directly."
+                                       Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <Button Content="Parse Rule" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding Wizard.ParseCommand}"
+                                    HorizontalAlignment="Left" MinWidth="120" Margin="0,12,0,0"
+                                    AutomationProperties.Name="Parse English rule description"
+                                    AutomationProperties.AutomationId="ParseRuleButton"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding Wizard.IsYamlMode, Converter={StaticResource BoolToVis}}">
+                            <TextBox Text="{Binding Wizard.YamlText, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" TextWrapping="NoWrap" MinHeight="220" AcceptsTab="True"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                     FontFamily="{StaticResource MonoFont}" FontSize="12.5"
+                                     AutomationProperties.Name="Write or paste rule YAML"
+                                     AutomationProperties.AutomationId="RuleYamlTextBox"/>
+                            <TextBlock Text="Use this when the AI-assisted parser (Groq) is at quota or unavailable — paste or write the rule directly as YAML. This never calls the LLM; it only validates and normalizes what you write."
+                                       Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            <Button Content="Parse YAML" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding Wizard.ParseYamlCommand}"
+                                    HorizontalAlignment="Left" MinWidth="120" Margin="0,12,0,0"
+                                    AutomationProperties.Name="Parse YAML rule"
+                                    AutomationProperties.AutomationId="ParseYamlButton"/>
+                        </StackPanel>
+
+                        <TextBlock Text="Working..." Style="{StaticResource SecondaryTextStyle}" FontSize="11" Margin="0,6,0,0"
+                                   Visibility="{Binding Wizard.IsBusy, Converter={StaticResource BoolToVis}}"/>
+
+                        <Border Background="{StaticResource CriticalBrush}" CornerRadius="4" Padding="10" Margin="0,10,0,0"
+                                Visibility="{Binding Wizard.IsBlocked, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{Binding Wizard.BlockedMessage}" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        </Border>
+                        <TextBlock Text="{Binding Wizard.ParseErrorText}" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" Margin="0,8,0,0"
+                                   AutomationProperties.AutomationId="ParseErrorTextBlock"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- ═══ Stage 2: Review Structure ═══ -->
+            <StackPanel Visibility="{Binding Wizard.Stage, Converter={StaticResource StageEqualsConverter}, ConverterParameter=2}">
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12"
+                        Visibility="{Binding Wizard.NeedsRevalidation, Converter={StaticResource BoolToVis}}"
+                        Background="{StaticResource WarningBrush}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="You've edited fields below — re-validate before continuing. Test and Approve are blocked until this passes."
+                                   TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Re-validate" Command="{Binding Wizard.RevalidateCommand}" MinWidth="110" Margin="10,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Generated Rule Structure (AI-assisted — human review required)" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,10"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="TRIGGER EVENT" Style="{StaticResource SectionLabelStyle}" FontSize="10"/>
+                                <TextBox Text="{Binding Wizard.TriggerEvent, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource MonoFont}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="SEVERITY" Style="{StaticResource SectionLabelStyle}" FontSize="10"/>
+                                <ComboBox SelectedValue="{Binding Wizard.Severity}" SelectedValuePath="Content" FontSize="12">
+                                    <ComboBoxItem Content="low"/>
+                                    <ComboBoxItem Content="medium"/>
+                                    <ComboBoxItem Content="high"/>
+                                    <ComboBoxItem Content="critical"/>
+                                </ComboBox>
+                                <TextBlock Text="PRIORITY" Style="{StaticResource SectionLabelStyle}" FontSize="10" Margin="0,6,0,0"/>
+                                <TextBox Text="{Binding Wizard.Priority, UpdateSourceTrigger=PropertyChanged}" FontSize="12"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="SUSTAIN FOR" Style="{StaticResource SectionLabelStyle}" FontSize="10"/>
+                                <TextBox Text="{Binding Wizard.SustainFor, UpdateSourceTrigger=PropertyChanged}" FontSize="12"
+                                         ToolTip="e.g. 30s, 2m — leave blank for none"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Condition, aggregation and correlation fields below are editable; every change requires server re-validation." Style="{StaticResource SecondaryTextStyle}" Margin="0,8,0,4"/>
+                        <DockPanel Margin="0,8,0,4">
+                            <Button DockPanel.Dock="Right" Content="Add condition" Command="{Binding Wizard.AddConditionCommand}" Padding="8,3"/>
+                            <TextBlock Text="Editable conditions" Style="{StaticResource SectionLabelStyle}"/>
+                        </DockPanel>
+                        <ItemsControl ItemsSource="{Binding Wizard.Conditions}">
+                            <ItemsControl.ItemTemplate><DataTemplate DataType="{x:Type vm:RuleConditionEditorViewModel}">
+                                <Grid Margin="0,2"><Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="150"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding Field, UpdateSourceTrigger=PropertyChanged}" ToolTip="Event field"/>
+                                    <ComboBox Grid.Column="1" Text="{Binding Operator, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Margin="6,0">
+                                        <ComboBoxItem Content="equals"/><ComboBoxItem Content="not_equals"/><ComboBoxItem Content="contains"/><ComboBoxItem Content="matches"/><ComboBoxItem Content="greater_than"/><ComboBoxItem Content="less_than"/><ComboBoxItem Content="in"/>
+                                    </ComboBox>
+                                    <TextBox Grid.Column="2" Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="String, number, boolean, JSON array or object"/>
+                                    <Button Grid.Column="3" Content="Remove" Command="{Binding DataContext.Wizard.RemoveConditionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Margin="6,0,0,0"
+                                            AutomationProperties.Name="{Binding Field, StringFormat=Remove condition on {0}}"/>
+                                </Grid>
+                            </DataTemplate></ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <CheckBox Content="Enable aggregation" IsChecked="{Binding Wizard.AggregationEnabled}" Margin="0,12,0,4" FontWeight="SemiBold"/>
+                        <Grid IsEnabled="{Binding Wizard.AggregationEnabled}"><Grid.ColumnDefinitions><ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0"><TextBlock Text="GROUP KEYS" Style="{StaticResource SectionLabelStyle}" FontSize="10"/><TextBox Text="{Binding Wizard.AggregationKeys, UpdateSourceTrigger=PropertyChanged}" ToolTip="Comma-separated fields"/></StackPanel>
+                            <StackPanel Grid.Column="1" Margin="8,0"><TextBlock Text="WINDOW" Style="{StaticResource SectionLabelStyle}" FontSize="10"/><TextBox Text="{Binding Wizard.AggregationWindow, UpdateSourceTrigger=PropertyChanged}" ToolTip="Example: 5m"/></StackPanel>
+                            <StackPanel Grid.Column="2"><TextBlock Text="THRESHOLD" Style="{StaticResource SectionLabelStyle}" FontSize="10"/><TextBox Text="{Binding Wizard.AggregationThreshold, UpdateSourceTrigger=PropertyChanged}"/></StackPanel>
+                        </Grid>
+
+                        <CheckBox Content="Enable multi-stage correlation" IsChecked="{Binding Wizard.CorrelationEnabled}" Margin="0,12,0,4" FontWeight="SemiBold"/>
+                        <Grid IsEnabled="{Binding Wizard.CorrelationEnabled}"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="2*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="WITHIN" Style="{StaticResource SectionLabelStyle}" FontSize="10"/><TextBox Text="{Binding Wizard.CorrelationWithin, UpdateSourceTrigger=PropertyChanged}"/></StackPanel>
+                                <StackPanel Grid.Column="1" Margin="8,0"><TextBlock Text="JOIN ON" Style="{StaticResource SectionLabelStyle}" FontSize="10"/><TextBox Text="{Binding Wizard.CorrelationJoinOn, UpdateSourceTrigger=PropertyChanged}" ToolTip="Comma-separated fields"/></StackPanel>
+                                <CheckBox Grid.Column="2" Content="Ordered" IsChecked="{Binding Wizard.CorrelationOrdered}" VerticalAlignment="Bottom" Margin="8,0"/>
+                            </Grid>
+                            <StackPanel Grid.Row="1" Margin="0,6,0,0"><TextBlock Text="STAGES (validated RuleIR JSON array)" Style="{StaticResource SectionLabelStyle}" FontSize="10"/>
+                                <TextBox Text="{Binding Wizard.CorrelationStagesJson, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" MinHeight="90" FontFamily="{StaticResource MonoFont}" VerticalScrollBarVisibility="Auto"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Investigation Steps (one per line)" Style="{StaticResource SectionLabelStyle}" Margin="0,10,0,4"/>
+                        <TextBox Text="{Binding Wizard.InvestigationStepsText, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" VerticalScrollBarVisibility="Auto" FontSize="12"/>
+
+                        <TextBlock Text="Tags (comma-separated)" Style="{StaticResource SectionLabelStyle}" Margin="0,10,0,4"/>
+                        <TextBox Text="{Binding Wizard.TagsText, UpdateSourceTrigger=PropertyChanged}" FontSize="12"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="STRUCTURAL VALIDATION" Style="{StaticResource SectionLabelStyle}" FontSize="10"/>
+                                <ItemsControl ItemsSource="{Binding Wizard.ValidationErrors}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" Foreground="{StaticResource CriticalBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,2"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="CAPABILITY GAPS" Style="{StaticResource SectionLabelStyle}" FontSize="10"/>
+                                <ItemsControl ItemsSource="{Binding Wizard.CapabilityGaps}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" Foreground="{StaticResource WarningBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,2"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding Wizard.InjectionFlagsList}" Margin="0,8,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Foreground="{StaticResource CriticalBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,2"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Expander Header="Advanced: Raw IR JSON" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <TextBox Text="{Binding Wizard.RawIrJson, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                                 FontFamily="{StaticResource MonoFont}" FontSize="11" TextWrapping="NoWrap"
+                                 MaxHeight="260" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                    </Border>
+                </Expander>
+            </StackPanel>
+
+            <!-- ═══ Stage 3: Test ═══ -->
+            <StackPanel Visibility="{Binding Wizard.Stage, Converter={StaticResource StageEqualsConverter}, ConverterParameter=3}">
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12"
+                        Visibility="{Binding Wizard.NeedsRevalidation, Converter={StaticResource BoolToVis}}"
+                        Background="{StaticResource WarningBrush}">
+                    <TextBlock Text="Structure was edited after this simulation ran — go back to Review Structure and re-validate."
+                               TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}"/>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Simulation Against Retained Evidence" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding Wizard.SimulationSummary}" TextWrapping="Wrap" FontSize="13"/>
+                        <TextBlock Text="No destructive action is executed during simulation." Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Expander Header="Raw Simulation Output" Foreground="{StaticResource TextSecondaryBrush}">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0">
+                        <TextBox Text="{Binding Wizard.RawSimulationJson, Mode=OneWay}" IsReadOnly="True" BorderThickness="0" Background="Transparent"
+                                 FontFamily="{StaticResource MonoFont}" FontSize="11" TextWrapping="NoWrap"
+                                 MaxHeight="300" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+                    </Border>
+                </Expander>
+            </StackPanel>
+
+            <!-- ═══ Stage 4: Approve ═══ -->
+            <StackPanel Visibility="{Binding Wizard.Stage, Converter={StaticResource StageEqualsConverter}, ConverterParameter=4}">
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Response Actions — AI-suggested, human-finalised" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding Wizard.SuggestedActionReason}" Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <ItemsControl ItemsSource="{Binding Wizard.SuggestedActions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:SuggestedActionRowViewModel}">
+                                    <Border BorderBrush="{StaticResource BorderBrush2}" BorderThickness="0,0,0,1" Padding="0,8">
+                                        <StackPanel>
+                                            <!-- Content is an explicit TextBlock, not a plain-string Content="{Binding ActionType}"
+                                                 — CheckBox's default style sets RecognizesAccessKey on its ContentPresenter, so a
+                                                 raw string Content silently swallows the FIRST underscore in "kill_process" or
+                                                 "isolate_host" as a mnemonic marker (renders/reports as "killprocess"/"isolatehost"
+                                                 — found live via UI automation reading the actual rendered accessible name). A
+                                                 TextBlock host is never access-key-processed. -->
+                                            <CheckBox IsChecked="{Binding IsSelected}"
+                                                      AutomationProperties.Name="{Binding ActionType, StringFormat=Response action: {0}}">
+                                                <TextBlock Text="{Binding ActionType}"/>
+                                            </CheckBox>
+                                            <StackPanel Orientation="Horizontal" Margin="24,4,0,0"
+                                                        Visibility="{Binding RequiresExtraConfirmation, Converter={StaticResource BoolToVis}}">
+                                                <CheckBox IsChecked="{Binding ExtraConfirmed}" IsEnabled="{Binding IsSelected}"
+                                                          AutomationProperties.Name="{Binding ActionType, StringFormat=Confirm destructive action: {0}}"/>
+                                                <TextBlock Text="I confirm this destructive action's target validation and guardrails before enabling it."
+                                                           Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" Margin="6,0,0,0" MaxWidth="500"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="No response actions selected — the rule will default to Alert only."
+                                   Style="{StaticResource SecondaryTextStyle}" FontSize="11" Margin="0,8,0,0"
+                                   Visibility="{Binding Wizard.SuggestedActions.Count, Converter={StaticResource StageEqualsConverter}, ConverterParameter=0}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="{Binding Wizard.ModelMetaText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5"/>
+                        <Button Content="Approve Rule" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding Wizard.ApproveCommand}"
+                                HorizontalAlignment="Left" MinWidth="140" Margin="0,12,0,0"
+                                AutomationProperties.AutomationId="ApproveRuleButton"
+                                AutomationProperties.HelpText="Persists this rule and reloads it into the live watcher; requires a fresh validated simulation first."/>
+                        <TextBlock Text="{Binding Wizard.ApproveResultText}" TextWrapping="Wrap" Margin="0,10,0,0" FontWeight="SemiBold"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Navigation -->
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Button Content="← Back" Command="{Binding Wizard.BackCommand}" MinWidth="90"/>
+                <Button Content="Next →" Command="{Binding Wizard.NextCommand}" MinWidth="90" Margin="10,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

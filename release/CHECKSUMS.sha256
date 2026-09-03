@@ -1,0 +1,12 @@
+﻿# TITAN ENDPOINT - Release Checksums
+# Generated: 2026-08-05T06:57:09.4821747Z
+
+71cfbde529ea1adf07ffc4bd3c4a1d0814cf9f52b28ae8ab829433c8893373c7  GUI\src\TitanEndpoint.App\bin\Release\net8.0-windows\TitanEndpoint.App.exe
+a6e68325cf3fc3332f7a35004a8598cf297e8f7ef00fe94e95d5fe6a4c7ec763  GUI\src\TitanEndpoint.App\bin\Release\net8.0-windows\TitanEndpoint.Core.dll
+d1637cd28dce4e40c20760a656a15d3bcf068751b6b4f2914ebe897c603e66ae  runtime-manifest.json
+e4f3cff8751cbd0801e0d99e0d882f97e4bab21a87f7dee30687887cbecbb557  PROCESS ENDPOINT\titan_fixed\out\build\release-manifest\bin\titan_process.exe
+789dd277ba0880f2bddb52e86c3e0d205f1020da9313be2440530dd958ca1d18  NETOWRK ENDPOINT\out\build\release-manifest\titan.exe
+b2e17a60cb3e82028d09a9044c70ff2e62eaf717909b1e786f2dbd6e6ba12099  APP\out\build\release-manifest\bin\application_endpoint.exe
+b61f0c4fca3fccae96cd5ff72a343c7a8dc5cbe85d3495620f2ca58613437442  FILEEE\out\build\release-manifest\bin\Release\file_test.exe
+2774d867ad7dcda8fda3bc44119f2c1cd9fec11756cdf8788826760eb0b2c349  PORT ENDPOINT\out\build\release-manifest\bin\usb_test.exe
+a6bf1ffb72fab3de91d86ab56ebb1beba1a43858d20eb5065e9bf306c4e64e8b  CORRELATOR\out\build\release-manifest\bin\correlator.exe

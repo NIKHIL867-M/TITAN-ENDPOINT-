@@ -1,0 +1,99 @@
+================================================================================
+   AZUH-MAIN (WAZUH) — MISSING WINDOWS CAPABILITIES FOR CUSTOM RULE
+================================================================================
+
+This document lists ONLY the Windows-specific features, telemetry, and actions 
+present in "AZUH-MAIN" (Wazuh) that are NOT currently implemented in "CUSTOM RULE"
+(Watcher Agent). 
+
+Anything that "CUSTOM RULE" already implements (such as Windows Event Log XML 
+subscriptions, process tree execution tracking, and basic host isolation) has 
+been filtered out.
+
+--------------------------------------------------------------------------------
+ [1] SYSTEM CONFIGURATION HARDENING & SCA COMPLIANCE
+--------------------------------------------------------------------------------
+What is NOT in Custom Rule:
+- Custom Rule has no compliance scanner, policy checks, or security auditing for 
+  general OS configuration state (e.g. checking password policies, disabled guest 
+  accounts, or registry configuration checks).
+  
+Where it is in AZUH-MAIN:
+- Folder: [ruleset/sca/windows/](file:///c:/Users/msant/Downloads/wazuh-main/azuh-main/ruleset/sca/windows)
+- Files: `cis_win10_enterprise.yml`, `cis_win11_enterprise.yml`, `cis_win2022.yml`, etc.
+- How it helps: Use these benchmark files as blueprints. They map specific rules 
+  to Windows Registry keys (under HKLM/HKCU) and WMI queries that can be used to 
+  perform compliance checks on Windows hosts.
+
+--------------------------------------------------------------------------------
+ [2] SCHEDULED REGISTRY INTEGRITY SCANNING & BASELINING
+--------------------------------------------------------------------------------
+What is NOT in Custom Rule:
+- Custom Rule only receives live event-driven `registry.set` events via Sysmon (EID 13).
+  It cannot scan the entire registry, create a database/baseline of registry values,
+  or detect modified/deleted keys when the agent is offline.
+  
+Where it is in AZUH-MAIN:
+- Folder: [src/syscheckd/src/registry/](file:///c:/Users/msant/Downloads/wazuh-main/azuh-main/src/syscheckd/src/registry)
+- Files: `registry.c`, `events.c`, `registry.h`
+- How it helps: High-performance registry traversing, key extraction, and drift 
+  detection logic that can be referenced to write a scheduled Registry Integrity 
+  Collector.
+
+--------------------------------------------------------------------------------
+ [3] WHODATA AUDITING (SACL TELEMETRY FOR FILES)
+--------------------------------------------------------------------------------
+What is NOT in Custom Rule:
+- Custom Rule monitors file creation via Sysmon (`file.create`), but it cannot 
+  determine WHO (what Windows user or process SID) initiated file changes natively.
+  
+Where it is in AZUH-MAIN:
+- Folder: [src/syscheckd/src/whodata/](file:///c:/Users/msant/Downloads/wazuh-main/azuh-main/src/syscheckd/src/whodata)
+- Files: `win_whodata.c`
+- How it helps: Shows how to configure Windows System Access Control Lists (SACLs) 
+  and read security event handles to query and bind process owner details to 
+  filesystem events.
+
+--------------------------------------------------------------------------------
+ [4] SYSTEM INVENTORY & METADATA HARVESTING (SYSCOLLECTOR)
+--------------------------------------------------------------------------------
+What is NOT in Custom Rule:
+- Custom Rule does not log system specs, installed software packages, active 
+  local user accounts, listening ports, or installed Windows Hotfixes (KB patches).
+  
+Where it is in AZUH-MAIN:
+- Folder: [src/data_provider/src/](file:///c:/Users/msant/Downloads/wazuh-main/azuh-main/src/data_provider/src)
+- Files: `sysInfoWin.cpp`, `utilsWrapperWin.cpp`, `networkInterfaceWindows.cpp`
+- How it helps: Code templates querying Windows APIs for installed packages, hotfixes, 
+  active IP routing table details, and open socket ports to build a "Syscollector"
+  module.
+
+--------------------------------------------------------------------------------
+ [5] DYNAMIC IP BLOCKING & ACCOUNT DISABLE (ACTIVE RESPONSES)
+--------------------------------------------------------------------------------
+What is NOT in Custom Rule:
+- Custom Rule has host isolation (netsh blocking all traffic) and process killing, 
+  but does not support blocking *specific* attacker IP addresses or disabling local 
+  user accounts.
+  
+Where it is in AZUH-MAIN:
+- Folder: [src/active-response/src/](file:///c:/Users/msant/Downloads/wazuh-main/azuh-main/src/active-response/src)
+- Files: `block-ip-windows.c`, `active_responses.h`
+- How it helps: Provides logic to block a specific malicious IP address in the Windows 
+  Firewall using `netsh advfirewall firewall add rule` and falling back to local routing 
+  table entries (`route.exe`).
+
+--------------------------------------------------------------------------------
+ [6] MITRE ATT&CK TECHNIQUE MAP DATABASE
+--------------------------------------------------------------------------------
+What is NOT in Custom Rule:
+- Custom Rule does not map rules or alerts to standard MITRE ATT&CK tactics, 
+  techniques, or mitigation guidelines.
+  
+Where it is in AZUH-MAIN:
+- Folder: [ruleset/mitre/](file:///c:/Users/msant/Downloads/wazuh-main/azuh-main/ruleset/mitre)
+- Files: `enterprise-attack.json`
+- How it helps: The JSON dataset can be parsed and imported into Custom Rule's 
+  rules or database to enrich telemetry matching with standard cybersecurity 
+  technique metadata.
+================================================================================

@@ -1,0 +1,221 @@
+<UserControl x:Class="TitanEndpoint.App.Views.ApplicationsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:ctl="clr-namespace:TitanEndpoint.App.Controls"
+             xmlns:common="clr-namespace:TitanEndpoint.App.Common">
+    <UserControl.DataContext>
+        <vm:ApplicationsViewModel/>
+    </UserControl.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ctl:EndpointHeader Grid.Row="0" Header="{Binding Header}"/>
+
+        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+            <TabItem Header="Catalog (Discovered / Installed / Running)">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Text="{Binding Catalog.FilterText, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="260" HorizontalAlignment="Left" ToolTip="Filter by name or path"
+                                 AutomationProperties.Name="Filter application catalog"
+                                 AutomationProperties.AutomationId="ApplicationCatalogFilterTextBox"/>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                            <TextBlock Text="{Binding Catalog.TotalsText}" Style="{StaticResource SecondaryTextStyle}"/>
+                            <TextBlock Text="{Binding Catalog.FreshnessText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Catalog.PageRows}" AutoGenerateColumns="False"
+                              AutomationProperties.Name="Application catalog"
+                              AutomationProperties.AutomationId="ApplicationCatalogGrid"
+                              common:LayoutPersistence.GridKey="ApplicationCatalogGrid">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Application" Binding="{Binding DisplayName}" Width="220"/>
+                            <DataGridTextColumn Header="Executable" Binding="{Binding Executable}" Width="150"/>
+                            <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" Width="160"/>
+                            <DataGridTextColumn Header="Signature" Binding="{Binding SignatureStatus}" Width="90"/>
+                            <DataGridTextColumn Header="State" Binding="{Binding StateText}" Width="140"/>
+                            <DataGridTextColumn Header="PIDs" Binding="{Binding PidCount}" Width="60"/>
+                            <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*"/>
+                            <DataGridTemplateColumn Header="Monitor" Width="180">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate DataType="{x:Type vm:ApplicationCatalogEntryViewModel}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <CheckBox IsChecked="{Binding Monitored, Mode=OneWay}" IsEnabled="{Binding Busy, Converter={StaticResource InverseBool}}"
+                                                      Command="{Binding DataContext.Catalog.ToggleMonitorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}"/>
+                                            <TextBlock Text="{Binding ErrorText}" Foreground="{StaticResource CriticalBrush}" FontSize="10" Margin="6,0,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="◀ Prev" Command="{Binding Catalog.PrevPageCommand}" Padding="10,4"
+                                AutomationProperties.Name="Previous catalog page" AutomationProperties.AutomationId="ApplicationCatalogPrevPageButton"/>
+                        <TextBlock Text="{Binding Catalog.PageText}" Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center" Margin="10,0"/>
+                        <Button Content="Next ▶" Command="{Binding Catalog.NextPageCommand}" Padding="10,4"
+                                AutomationProperties.Name="Next catalog page" AutomationProperties.AutomationId="ApplicationCatalogNextPageButton"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Activity">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" Text="{Binding FilterText, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="320" HorizontalAlignment="Left"
+                                 ToolTip="Filter by application, path or action"
+                                 AutomationProperties.Name="Filter application activity"
+                                 AutomationProperties.AutomationId="ApplicationActivityFilterTextBox"/>
+                        <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                            <TextBlock Text="{Binding SummaryText}" Style="{StaticResource SecondaryTextStyle}"/>
+                            <TextBlock Text="{Binding RowActions.LastResultText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" HorizontalAlignment="Right"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="12"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <DataGrid x:Name="ApplicationActivityGrid" Grid.Column="0" ItemsSource="{Binding RowsView}" AutoGenerateColumns="False"
+                                  AutomationProperties.Name="Application activity"
+                                  AutomationProperties.AutomationId="ApplicationActivityGrid"
+                                  common:LayoutPersistence.GridKey="ApplicationActivityGrid">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Time" Binding="{Binding Time}" Width="100"/>
+                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="90"/>
+                                <DataGridTextColumn Header="Application" Binding="{Binding Application}" Width="140"/>
+                                <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="110"/>
+                                <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="60"/>
+                                <!-- Real fields the native collector already emits for watched-app
+                                     socket activity (protocol/local/remote/state) — previously
+                                     captured but never shown; see ApplicationRowViewModel. -->
+                                <DataGridTextColumn Header="Network Activity" Binding="{Binding ConnectionSummary}" Width="220"/>
+                                <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*"/>
+                            </DataGrid.Columns>
+                            <!-- Row context menu (Open Location/Stop/Isolate) is built in code-behind
+                                 (RowActionsContextMenuHelper.Attach) — see that helper's doc comment
+                                 for why a declarative ContextMenu here silently no-ops every click. -->
+                        </DataGrid>
+
+                        <StackPanel Grid.Column="2">
+                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Monitor Selection" Style="{StaticResource SectionLabelStyle}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Watchlist.CapacityText}" Style="{StaticResource MonoTextStyle}" FontSize="11"/>
+                                    </Grid>
+
+                                    <ItemsControl ItemsSource="{Binding Watchlist.Entries}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:WatchlistEntryViewModel}">
+                                                <Grid Margin="0,3">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Ellipse Grid.Column="0" Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                             Fill="{Binding AppliedByCollector, Converter={StaticResource AppliedToBrushConverter}}"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding ExeName}" Style="{StaticResource MonoTextStyle}" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                                    <Button Grid.Column="2" Content="Remove" FontSize="10" Padding="6,2"
+                                                            Command="{Binding DataContext.Watchlist.RemoveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            AutomationProperties.Name="{Binding ExeName, StringFormat=Remove {0} from watchlist}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <TextBlock Text="No applications selected for monitoring yet." Style="{StaticResource SecondaryTextStyle}" FontSize="11" Margin="0,4,0,0"
+                                               Visibility="{Binding Watchlist.Entries.Count, Converter={StaticResource ZeroToVisibleConverter}}"/>
+
+                                    <Grid Margin="0,10,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{Binding Watchlist.NewAppName, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Executable filename, e.g. notepad.exe" Margin="0,0,6,0"
+                                                 AutomationProperties.Name="New application to monitor"
+                                                 AutomationProperties.AutomationId="NewWatchlistAppTextBox"/>
+                                        <Button Grid.Column="1" Content="Add" Command="{Binding Watchlist.AddCommand}" Padding="10,4"
+                                                AutomationProperties.Name="Add application to watchlist"
+                                                AutomationProperties.AutomationId="AddWatchlistAppButton"/>
+                                    </Grid>
+                                    <TextBlock Text="{Binding Watchlist.AddErrorText}" Foreground="{StaticResource CriticalBrush}" FontSize="10.5" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                    <TextBlock Text="{Binding Watchlist.StatusText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10.5" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="Applications Observed (in view)" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="420">
+                                        <ItemsControl ItemsSource="{Binding ObservedApplications}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type vm:ApplicationSummaryRowViewModel}">
+                                                    <Border BorderBrush="{StaticResource BorderBrush2}" BorderThickness="0,0,0,1" Padding="0,5">
+                                                        <StackPanel>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Ellipse Grid.Column="0" Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                                         Fill="{Binding IsCurrentlyRunning, Converter={StaticResource AppliedToBrushConverter}}"
+                                                                         ToolTip="{Binding IsCurrentlyRunning, StringFormat=Currently running: {0}}"/>
+                                                                <TextBlock Grid.Column="1" Text="{Binding Application}" TextTrimming="CharacterEllipsis"/>
+                                                                <TextBlock Grid.Column="2" Text="{Binding EventCount}" Style="{StaticResource MonoTextStyle}"/>
+                                                            </Grid>
+                                                            <TextBlock Text="{Binding NetworkSummary}" Style="{StaticResource SecondaryTextStyle}" FontSize="10" Margin="13,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

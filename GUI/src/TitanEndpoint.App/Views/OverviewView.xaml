@@ -1,0 +1,190 @@
+<UserControl x:Class="TitanEndpoint.App.Views.OverviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:TitanEndpoint.App.ViewModels"
+             xmlns:ctl="clr-namespace:TitanEndpoint.App.Controls">
+    <UserControl.DataContext>
+        <vm:OverviewViewModel/>
+    </UserControl.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+
+            <!-- ===== Top summary ===== -->
+            <UniformGrid Rows="1" Columns="6" Margin="0,0,0,16">
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Overall State" Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock Text="{Binding OverallStateText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                        <TextBlock Text="{Binding OverallStateNote}" Style="{StaticResource SecondaryTextStyle}" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Active Endpoints" Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock Text="{Binding ActiveEndpointsText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Events This Session" Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock Text="{Binding EventsThisSessionText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Alerts by Severity" Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock Text="{Binding AlertsSummaryText}" FontSize="13" FontWeight="SemiBold" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="TITAN RAM" Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock Text="{Binding TotalRamText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Dropped Events" Style="{StaticResource SectionLabelStyle}"/>
+                        <TextBlock Text="{Binding DroppedEventsText}" FontSize="16" FontWeight="SemiBold" Margin="0,4,0,0"
+                                   Foreground="{StaticResource WarningBrush}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- ===== Endpoint status grid ===== -->
+            <TextBlock Text="Endpoint Status" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+            <ItemsControl ItemsSource="{Binding Cards}" Margin="0,0,0,16"
+                          AutomationProperties.Name="Endpoint status cards"
+                          AutomationProperties.AutomationId="EndpointCardsList">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="1" Columns="5"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:EndpointCardViewModel}">
+                        <!-- Whole card is clickable, not just the Open button below: a real,
+                             expected "card" interaction, with a hover cue so it visibly invites the
+                             click rather than looking like flat, static text. Scoped to this
+                             DataTemplate rather than added to the shared CardStyle so purely
+                             decorative cards elsewhere (which are not clickable) never show a
+                             misleading hover affordance. -->
+                        <Border Margin="0,0,8,0" Cursor="Hand" Tag="{Binding}" MouseLeftButtonUp="Card_Click">
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                            <Setter Property="Background" Value="{StaticResource PanelBg2Brush}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding IconGlyph}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontWeight="SemiBold" Margin="6,0,0,0"/>
+                                    <Ellipse Grid.Column="2" Width="8" Height="8" Fill="{Binding StatusBrush}"/>
+                                </Grid>
+                                <TextBlock Text="{Binding StatusText}" Margin="0,8,0,0" FontWeight="SemiBold"/>
+                                <TextBlock Style="{StaticResource SecondaryTextStyle}" Margin="0,6,0,0">
+                                    <Run Text="Logging:"/><Run Text="{Binding LoggingText, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource SecondaryTextStyle}" Margin="0,2,0,0">
+                                    <Run Text="Heartbeat:"/><Run Text="{Binding LastHeartbeatText, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource SecondaryTextStyle}" Margin="0,2,0,0">
+                                    <Run Text="Rate:"/><Run Text="{Binding EventRateText, Mode=OneWay}"/>
+                                </TextBlock>
+                                <TextBlock Text="{Binding DegradedReasonText}" Foreground="{StaticResource WarningBrush}"
+                                           FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap"
+                                           Visibility="{Binding HasDegradedReason, Converter={StaticResource BoolToVis}}"/>
+                                <Button Content="Open" Margin="0,10,0,0" HorizontalAlignment="Left"
+                                        Click="OpenCard_Click" Tag="{Binding}"
+                                        AutomationProperties.Name="{Binding DisplayName, StringFormat=Open {0}}"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ===== Recent activity timeline ===== -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Recent Activity" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,8"/>
+                        <ItemsControl ItemsSource="{Binding RecentActivity}"
+                                      AutomationProperties.Name="Recent activity"
+                                      AutomationProperties.AutomationId="RecentActivityList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ActivityItemViewModel}">
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="20"/>
+                                            <ColumnDefinition Width="110"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding TimeLocalText}" Style="{StaticResource MonoTextStyle}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding EndpointIcon}" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding EndpointName}" Style="{StaticResource SecondaryTextStyle}"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding EventType}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Column="4" Text="{Binding MainEntity}" Style="{StaticResource MonoTextStyle}" TextTrimming="CharacterEllipsis"/>
+                                        <Button Grid.Column="5" Content="Evidence" FontSize="10" Padding="4,1" Margin="6,0,0,0" Command="{Binding OpenEvidenceCommand}"
+                                                AutomationProperties.Name="{Binding MainEntity, StringFormat=Open evidence for: {0}}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                </Border>
+
+                <!-- ===== Resource panel ===== -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Resource Usage" Style="{StaticResource SectionLabelStyle}" Margin="0,0,0,10"/>
+
+                        <!-- Santosh, 2026-08-04: "remove that box and add animated live pie graph
+                             that should be indicating that RAM number" — replaces the flat
+                             sparkline+text RAM readout with the same real, animated radial gauge
+                             already used for disk budget below, driven by RamFraction (TITAN's own
+                             working set as a real fraction of this machine's total physical RAM). -->
+                        <TextBlock Text="TITAN Working Set" Style="{StaticResource SecondaryTextStyle}" HorizontalAlignment="Center"/>
+                        <ctl:RadialGauge Width="120" Height="120" HorizontalAlignment="Center" Margin="0,4,0,4"
+                                         Percentage="{Binding RamFraction}" Caption="of system RAM"
+                                         AutomationProperties.Name="TITAN RAM usage"
+                                         AutomationProperties.AutomationId="RamUsageGauge"/>
+                        <TextBlock Text="{Binding TotalRamText}" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,2,0,10"/>
+
+                        <TextBlock Text="Log Disk Usage" Style="{StaticResource SecondaryTextStyle}" Margin="0,14,0,0"/>
+                        <ctl:Sparkline Height="40" Values="{Binding DiskSamples}" Margin="0,4,0,4"/>
+                        <TextBlock Text="{Binding DiskSampleWindowText}" Style="{StaticResource SecondaryTextStyle}" FontSize="10" TextWrapping="Wrap" Margin="0,2,0,10"/>
+
+                        <!-- Real disk-budget-used circle graph: the "budget" line itself moved to
+                             the global top bar (visible on every page, not just Overview); this
+                             freed-up space now shows it visually instead, per the GUI-upgrade ask. -->
+                        <ctl:RadialGauge Width="120" Height="120" HorizontalAlignment="Center"
+                                         Percentage="{Binding DiskBudgetFraction}" Caption="of budget"
+                                         AutomationProperties.Name="Disk budget usage"
+                                         AutomationProperties.AutomationId="DiskBudgetGauge"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

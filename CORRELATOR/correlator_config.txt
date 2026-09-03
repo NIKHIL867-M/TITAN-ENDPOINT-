@@ -1,0 +1,33 @@
+# TITAN Correlator configuration -- FALLBACK ONLY.
+#
+# One "name=directory" line per source endpoint. Lines starting with '#'
+# and blank lines are ignored. `name` must be one of: port, process,
+# file_integrity, network, application (these select the filename pattern
+# the Correlator looks for in that directory -- see main.cpp's
+# FilenameHintFor()).
+#
+# As of 2026-08-06, correlator.exe no longer uses this file by default when
+# a real TITAN checkout is present: it walks up from its own .exe directory
+# looking for "<TITAN root>\.titan-runtime\correlator_config.txt" first --
+# the copy the GUI regenerates from runtime-manifest.json on every Start
+# All, which is the only one guaranteed to track wherever each endpoint's
+# build output currently lives. This file is only read if that one can't be
+# found (e.g. a standalone copy of just the CORRELATOR folder). Keep it
+# reasonably current, but do not treat it as the source of truth.
+
+# Port (USB) -- usb_test.exe always logs here, regardless of CWD.
+port=C:\ProgramData\TitanUSB\logs
+
+# Process -- titan_process.exe's current release-manifest build output.
+process=C:\Users\msant\OneDrive\Desktop\TITAN ENDPOINT\PROCESS ENDPOINT\titan_fixed\out\build\release-manifest\bin\logs
+
+# File Integrity -- file_test.exe's current release-manifest build output.
+file_integrity=C:\Users\msant\OneDrive\Desktop\TITAN ENDPOINT\FILEEE\out\build\release-manifest\bin\Release\logs
+
+# Network -- titan.exe's current release-manifest build output.
+network=C:\Users\msant\OneDrive\Desktop\TITAN ENDPOINT\NETOWRK ENDPOINT\out\build\release-manifest\logs
+
+# Application -- application_endpoint.exe's current release-manifest build
+# output; resolves relative to its own .exe location, so this should stay
+# accurate as long as the exe stays there.
+application=C:\Users\msant\OneDrive\Desktop\TITAN ENDPOINT\APP\out\build\release-manifest\bin\logs

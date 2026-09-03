@@ -1,0 +1,49 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Santosh, 2026-08-31: light-mode counterpart to Palette.xaml: same resource keys, only the
+         neutral background/text/border scale inverted to a light surface family. Accent (blue) and
+         the three status colors (healthy/warning/critical) are deliberately kept IDENTICAL to the
+         dark palette: they already read clearly against both a near-black and a near-white
+         background, and keeping them unchanged means "which color means what" never differs between
+         modes: only the neutrals that give the app its light/dark identity change. -->
+    <Color x:Key="WindowBgColor">#FFF4F4F6</Color>
+    <Color x:Key="NavBgColor">#FFFFFFFF</Color>
+    <Color x:Key="PanelBgColor">#FFFFFFFF</Color>
+    <Color x:Key="PanelBg2Color">#FFEEEEF1</Color>
+    <Color x:Key="BorderColor">#FFD6D6DB</Color>
+    <Color x:Key="TextPrimaryColor">#FF17171A</Color>
+    <Color x:Key="TextSecondaryColor">#FF5A5A62</Color>
+    <Color x:Key="TextDisabledColor">#FFA3A3AB</Color>
+    <Color x:Key="AccentColor">#FF2E86E8</Color>
+    <Color x:Key="AccentColorLight">#FF6AB4F5</Color>
+    <Color x:Key="HealthyColor">#FF2FB673</Color>
+    <Color x:Key="WarningColor">#FFE3A93B</Color>
+    <Color x:Key="CriticalColor">#FFE0473D</Color>
+
+    <SolidColorBrush x:Key="WindowBgBrush" Color="{StaticResource WindowBgColor}"/>
+    <SolidColorBrush x:Key="NavBgBrush" Color="{StaticResource NavBgColor}"/>
+    <SolidColorBrush x:Key="PanelBgBrush" Color="{StaticResource PanelBgColor}"/>
+    <SolidColorBrush x:Key="PanelBg2Brush" Color="{StaticResource PanelBg2Color}"/>
+    <SolidColorBrush x:Key="BorderBrush2" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource TextDisabledColor}"/>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="AccentBrushSoft" Color="{StaticResource AccentColor}" Opacity="0.16"/>
+    <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="{StaticResource AccentColorLight}" Offset="0"/>
+        <GradientStop Color="{StaticResource AccentColor}" Offset="1"/>
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="HealthyBrush" Color="{StaticResource HealthyColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+    <SolidColorBrush x:Key="CriticalBrush" Color="{StaticResource CriticalColor}"/>
+
+    <!-- Light equivalents of Palette.xaml's hover/alternating-row colors: subtle light-gray tints
+         instead of dark speckles, same role (DataGridRow/ListBoxItem hover, DataGrid zebra rows). -->
+    <Color x:Key="HoverBgColor">#FFE4E4E9</Color>
+    <Color x:Key="AlternateRowBgColor">#FFF8F8FA</Color>
+    <SolidColorBrush x:Key="HoverBgBrush" Color="{StaticResource HoverBgColor}"/>
+    <SolidColorBrush x:Key="AlternateRowBgBrush" Color="{StaticResource AlternateRowBgColor}"/>
+
+</ResourceDictionary>

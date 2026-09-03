@@ -1,0 +1,228 @@
+# GEKKO RAG-Augmented Rule Authoring — Implementation Plan
+
+## Verdict
+
+Build this. The architectural boundary is exactly right — retrieval
+helps the LLM understand a request, it never touches matching,
+evidence, or response. SQLite FTS instead of a vector database is the
+correct first choice for GEKKO's vocabulary specifically (exact field
+names, event types, operator strings benefit from lexical matching more
+than semantic similarity would help). The plan below keeps essentially
+all of the original structure and adds the handful of things that would
+otherwise cause quiet problems six months in: schema drift, knowledge
+poisoning through auto-promoted examples, and conflicting retrieved
+documents with no precedence rule.
+
+---
+
+## What's already right, stated once so it isn't re-litigated
+
+- RAG scoped to design-time authoring only, watcher never loads the
+  index — correct, matches this project's core principle since the
+  very first architecture doc.
+- Excluding the ~6,391 evidence files from auto-indexing — this is the
+  single sharpest catch in the original proposal. Evidence contains
+  live command lines, IPs, usernames — exactly the kind of
+  attacker-influenced content that shouldn't quietly become "trusted
+  knowledge" a future rule gets written against.
+- Trust tiers, checksums for built-in documents, retrieval trace shown
+  in the GUI, shadow-mode rollout before changing live behavior — all
+  sound, all kept as designed.
+
+---
+
+## Refinement 1 — `event_schema` documents must be regenerated automatically, not maintained as static artifacts
+
+The plan says these come from `context_builder.py`, which is right —
+but doesn't say *when* they regenerate. If this is a manual or
+build-time step, it reintroduces exactly the drift risk that
+`shared/action_types.py` and `shared/event_fields.py` were built to
+close for actions and fields respectively. A stale schema document
+recommending a field or event type that's since changed is a new
+version of the same bug class, just living in the knowledge base
+instead of two Python files.
+
+**Fix**: `event_schema` documents are not hand-authored knowledge —
+they're a live view. Regenerate them from `context_builder.py`'s actual
+output at every app startup and whenever collector status changes
+(the same trigger that already updates `collector_status.json`), hashed
+and compared against what's currently indexed so a rebuild only happens
+when something actually changed. This is the one document type in the
+whole knowledge base that should never be "curated" — it's derived, full
+stop.
+
+## Refinement 2 — explicit precedence when retrieved documents conflict
+
+Nothing in the original design says what happens when two retrieved
+documents disagree — e.g. a `verified_example` indexed before a
+`platform_caveat` was discovered (before the UWP alias issue was known,
+say) could actively contradict the newer, more correct caveat. Without
+an explicit order, that's just confusing context for the LLM to
+untangle, inconsistently, request to request.
+
+**Fix**: fixed precedence, stated once and enforced in
+`prompt_context.py`:
+
+```
+platform_caveat  >  event_schema  >  rule_pattern  >  verified_example  >  rejection_lesson
+```
+
+Safety-relevant caveats win over ground-truth capability, which wins
+over structural guidance, which wins over illustrative examples, which
+wins over soft lessons. When two retrieved documents touch the same
+event/field, the lower-precedence one gets a note in the prompt
+("older example, see caveat above") rather than being silently
+included as if it carries equal weight.
+
+## Refinement 3 — `verified_example` promotion needs to be a deliberate, sanitized human action, not automatic
+
+"Live-tested examples can receive a higher trust level" doesn't specify
+*how* a rule becomes a `verified_example`. If this happens
+automatically (any approved rule that fires correctly N times), two
+problems follow: a merely-adequate rule gets treated as exemplary
+guidance, and — more seriously — an approved rule can contain real
+infrastructure specifics (an actual internal hostname, a real IP range
+in a threshold) that shouldn't get fed back as "generic guidance" into
+someone else's future rule-authoring session.
+
+**Fix**: promotion is an explicit action — a "Promote to knowledge
+base" button in Approved Rules, not a background job. Promotion runs the
+rule through a sanitization pass first (strip specific hostnames, IPs,
+usernames, replace with generic placeholders like `{HOST}`, `{IP}`)
+before it's written as a document. This is the same ingestion-screening
+discipline the plan already applies to prompt-injection detection,
+extended to PII/infrastructure specifics.
+
+## Refinement 4 — `rejection_lesson` sourcing: cluster, don't guess
+
+Fully manual lesson-writing is safe but slow — someone has to notice a
+pattern across many rejected attempts before writing a lesson down.
+Fully automatic is risky for the same reason `verified_example`
+automation is risky.
+
+**Fix**: use the same FTS infrastructure already being built for a
+periodic (weekly is fine) clustering pass over recent
+`needs_clarification`/rejected attempts, surfacing the most common
+failure patterns to a human curator to turn into a generalized lesson.
+No new dependency — this reuses the retrieval index's own technology
+pointed at a different input.
+
+## Refinement 5 — retrieval must not pad low-relevance documents to hit a quota
+
+"Retrieve up to two rule patterns, up to three schemas..." — worth an
+explicit floor: if a document's relevance score is below a fixed
+threshold, that slot stays empty rather than being filled with a
+poor-scoring match just to reach a target count. Diverse retrieval
+should never mean "retrieve noise to fill the budget."
+
+## Refinement 6 — the gold evaluation dataset becomes an ongoing regression suite, not a one-time snapshot
+
+Phase 1's baseline dataset is exactly right as a starting point — but
+running it once and comparing once means a later schema change or
+knowledge-base edit could silently degrade retrieval quality with
+nothing catching it until a real user hits a bad rule. Fold the gold
+dataset into the existing pytest suite as an ongoing check: every rule
+in it gets re-run on every test pass, results compared against the
+recorded Phase 1 baseline, flagging any rule whose outcome changed —
+turning a snapshot into a standing regression guard.
+
+## Refinement 7 — retrieval runs once per submission, not once per retry
+
+The Groq client's retry loop (bad JSON → retry, invalid IR → retry, max
+3 calls) shouldn't trigger re-retrieval on each attempt — the
+underlying rule intent hasn't changed between retries, only the
+correction prompt has. Retrieve once, reuse the retrieved context
+across the retry budget, and only re-retrieve if the person actually
+submits a new rule description.
+
+---
+
+## Seed content — start from this project's own hard-won lessons, not a blank slate
+
+The highest-value `platform_caveat` documents to write first already
+exist, in this exact codebase's history, as things that were each
+discovered live and fixed after the fact:
+
+- The UWP execution-alias pattern (`calc.exe`→`CalculatorApp.exe`,
+  and its two subsequent recurrences) — write this as one generalized
+  caveat now, rather than waiting for a fourth app to trigger a fourth
+  manual fix.
+- `ProcessGuid` vs. raw PID for correlation joins, and why PID reuse
+  matters within a multi-minute window.
+- WMI's ~1-second polling interval and the specific blind spot it
+  creates for short-lived processes.
+- Sysmon/Security prerequisite requirements and the exact commands
+  needed to enable them.
+
+Writing these four caveats is higher-value Phase-1 work than any
+generic `rule_pattern` authoring, because they encode mistakes this
+exact project already paid the cost of discovering once — RAG's whole
+value proposition here is making sure that cost is paid once, not
+per-app, per-collector, going forward.
+
+---
+
+## Connection worth making explicitly: this is the moment to also fix the evidence-viewer stage bug
+
+A currently-open item (from the last GUI audit) is that the evidence
+viewer flattens multi-stage correlation conditions into one
+undifferentiated list. Building good `rule_pattern` retrieval for
+"ordered process chains" requires the IR to carry clear stage labeling
+for retrieval/prompting purposes anyway. That's the same metadata the
+evidence viewer needs to render stages correctly instead of flattening
+them. Do this stage-labeling work once, for both purposes, rather than
+treating RAG's correlation pattern support and the evidence viewer fix
+as unrelated efforts.
+
+---
+
+## Phased build plan (refined)
+
+**Phase 1 — Baseline + seed caveats.** Build the gold evaluation
+dataset as specified, run the current non-RAG pipeline, save results.
+Simultaneously write the four seed `platform_caveat` documents above —
+they don't depend on retrieval infrastructure existing yet.
+
+**Phase 2 — Controlled catalog.** As specified: Pydantic-validated
+documents, reject duplicate IDs/unknown events/fields/operators. Add:
+`event_schema` documents are generated, not authored (Refinement 1) —
+build the regeneration trigger now, not as an afterthought later.
+
+**Phase 3 — Local retrieval.** SQLite FTS, filters, scoring, diversity
+rules, context limits, tracing, bounded caching — as specified. Add the
+minimum-relevance floor (Refinement 5) and the precedence rule
+(Refinement 2) here, since both live in the retrieval/context-assembly
+code path.
+
+**Phase 4 — Shadow mode.** As specified — retrieve and record, don't
+change the live prompt yet. This is where Refinement 6's regression
+suite starts proving itself useful, since you'll have both baseline and
+shadow-mode results to compare.
+
+**Phase 5 — Prompt integration.** As specified, with retrieval running
+once per submission (Refinement 7), not per retry.
+
+**Phase 6 — GUI and diagnostics.** As specified, plus the "Promote to
+knowledge base" button with sanitization (Refinement 3) and the
+stage-labeling work that also fixes the evidence viewer (see above).
+
+**Phase 7 — Acceptance testing.** Keep the original numeric gates
+(98% retrieval recall, 95% executable-IR rate, <50ms p95 retrieval
+latency, zero watcher impact) — these are good, concrete, and worth
+keeping exactly as specified. Add: the gold dataset now runs as a
+permanent regression suite (Refinement 6), not a one-time gate.
+
+**Phase 8 — Optional semantic retrieval.** As specified — only if
+evaluation proves lexical retrieval genuinely misses paraphrases BM25
+can't catch. Not a default assumption.
+
+---
+
+## What stays exactly as originally specified, no changes
+
+The six document types, the storage layout (`knowledge/`,
+`app/knowledge/`, `data/rag/`), the security requirements (checksums,
+never-retrieve-from-untrusted, atomic index rebuilds with rollback),
+and the hard boundary that RAG never decides a match, never fires an
+action, and never makes unavailable telemetry appear available. All of
+this was already correct.
